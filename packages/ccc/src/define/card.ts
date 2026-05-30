@@ -112,8 +112,6 @@ interface CardExtra {
  */
 export type Card = CardAdditional & CardCore & CardDescription & CardMeta & CardExtra
 
-type CardFn<T extends Record<string, unknown> = Record<string, unknown>> = (data: T) => Card
 
 export const defineCard = (card: Card) => card
 
-const defineCardFn = <T extends Record<string, unknown> = Record<string, unknown>>(card: CardFn<T>, data: T) => card(data)
