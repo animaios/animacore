@@ -9,6 +9,7 @@ catalog:
   '@guiiai/logg': ^1.2.11
   '@histoire/plugin-vue': 1.0.0-beta.1
   '@intlify/core': ^11.3.2
+  '@intlify/unplugin-vue-i18n': ^11.2.3
   '@modelcontextprotocol/sdk': ^1.29.0
   '@moeru/eslint-config': 0.1.0-beta.15
   '@moeru/eventa': 1.0.0-beta.5
