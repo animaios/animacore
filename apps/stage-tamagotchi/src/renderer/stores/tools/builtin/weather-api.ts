@@ -60,7 +60,7 @@ const wmoCodeToCondition: Record<number, { conditionCode: string, condition: str
   99: { conditionCode: 'thunderstorm', condition: 'Thunderstorm with heavy hail' },
 }
 
-export interface WeatherData {
+interface WeatherData {
   city: string
   country: string
   temperature: string

@@ -59,7 +59,7 @@ export interface InferenceServiceProvidersModel {
 /**
  * Runtime dependencies required to create the inference service provider persistence model.
  */
-export interface CreateInferenceServiceProvidersModelParams {
+interface CreateInferenceServiceProvidersModelParams {
   /**
    * Unstorage-compatible backend used for the existing local provider snapshot.
    */

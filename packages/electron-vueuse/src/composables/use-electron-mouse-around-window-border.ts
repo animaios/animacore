@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useElectronRelativeMouse } from './use-electron-relative-mouse'
 import { useElectronWindowBounds } from './use-electron-window-bounds'
 
-export interface UseElectronMouseAroundWindowBorderOptions {
+interface UseElectronMouseAroundWindowBorderOptions {
   /** Pixel distance from the window edge to consider as "near". */
   threshold?: number
   /** Allow a small overshoot outside the window and still count as near. Defaults to threshold. */
@@ -59,4 +59,3 @@ export function useElectronMouseAroundWindowBorder(
   }
 }
 
-export type UseElectronMouseAroundWindowBorderReturn = ReturnType<typeof useElectronMouseAroundWindowBorder>

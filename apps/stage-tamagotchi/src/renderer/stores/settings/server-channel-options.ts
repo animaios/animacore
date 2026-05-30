@@ -1,4 +1,4 @@
-export type ServerChannelExposureMode = 'this-device' | 'all' | 'advanced'
+type ServerChannelExposureMode = 'this-device' | 'all' | 'advanced'
 
 const LOOPBACK_HOSTNAMES = new Set(['', '127.0.0.1', 'localhost', '::1'])
 const ALL_INTERFACE_HOSTNAMES = new Set(['0.0.0.0', '::'])
