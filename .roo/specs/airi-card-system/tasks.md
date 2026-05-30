@@ -90,9 +90,9 @@
 
 ## Phase 6: UI Components — CardDetailDialog Expansion
 
-- [ ] **T6.1**: Expand [`CardDetailDialog.vue`](packages/stage-pages/src/pages/settings/airi-card/components/CardDetailDialog.vue) tabs to match CardCreationDialog tabs (Description, Acting, Modules, Artistry, Proactivity, Generation)
-- [ ] **T6.2**: Add read-only display of acting config, heartbeat config, dream state config, generation config in detail view
-- [ ] **T6.3**: Add `initialTab` prop support so index page can open detail dialog to a specific tab
+- [x] **T6.1**: Expand [`CardDetailDialog.vue`](packages/stage-pages/src/pages/settings/airi-card/components/CardDetailDialog.vue) tabs to match CardCreationDialog tabs (Description, Acting, Modules, Artistry, Proactivity, Generation)
+- [x] **T6.2**: Add read-only display of acting config, heartbeat config, dream state config, generation config in detail view
+- [x] **T6.3**: Add `initialTab` prop support so index page can open detail dialog to a specific tab
 
 ## Phase 7: UI Components — CardListItem & Helper Modals
 
