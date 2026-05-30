@@ -60,10 +60,10 @@ if (uNprEnvMode == 2) {
 // ===== Utility tools =====
 export type EnvMode = 'off' | 'skyBox' | 'hemisphere'
 
-export const isShaderMat = (m: any): m is THREE.ShaderMaterial => !!m?.isShaderMaterial
-export const isRawShader = (m: any): m is THREE.RawShaderMaterial => !!m?.isRawShaderMaterial
+const isShaderMat = (m: any): m is THREE.ShaderMaterial => !!m?.isShaderMaterial
+const isRawShader = (m: any): m is THREE.RawShaderMaterial => !!m?.isRawShaderMaterial
 
-export function normalizeEnvMode(v?: string | null): EnvMode {
+function normalizeEnvMode(v?: string | null): EnvMode {
   if (v === 'skyBox')
     return 'skyBox'
   if (v === 'hemisphere')
@@ -84,7 +84,7 @@ function assignSHUniform(u: any, sh: THREE.SphericalHarmonics3 | null | undefine
 }
 
 // ===== Shader Material: IBL shader injection =====
-export function injectDiffuseIBL(mat: THREE.ShaderMaterial) {
+function injectDiffuseIBL(mat: THREE.ShaderMaterial) {
   const baseKey = mat.customProgramCacheKey?.() ?? ''
   mat.customProgramCacheKey = () => `${baseKey}|airi-diffuse-ibl`
 
@@ -134,7 +134,7 @@ export function injectDiffuseIBL(mat: THREE.ShaderMaterial) {
 }
 
 // update shader settings
-export function updateNprShaderSetting(
+function updateNprShaderSetting(
   root: THREE.Object3D,
   opts: { mode: EnvMode, intensity: number, sh?: THREE.SphericalHarmonics3 | null },
 ) {
@@ -155,7 +155,7 @@ export function updateNprShaderSetting(
 }
 
 // ===== MToon LightProbe IBL =====
-export function createIblProbeController(scene: THREE.Scene) {
+function createIblProbeController(scene: THREE.Scene) {
   const probe = new THREE.LightProbe()
   probe.name = 'AIRI_IBL_Probe'
   scene.add(probe)

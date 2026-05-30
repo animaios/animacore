@@ -84,7 +84,7 @@ export interface CharactersService {
  * Returns:
  * - A stable object containing character domain operations.
  */
-export function createCharactersService(): CharactersService {
+function createCharactersService(): CharactersService {
   function requestOptions(options?: CharacterServiceOptions): RequestOptions | undefined {
     return options?.abortSignal ? { init: { signal: options.abortSignal } } : undefined
   }

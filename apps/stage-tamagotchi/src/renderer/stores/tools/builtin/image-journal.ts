@@ -12,7 +12,7 @@ import { rawTool } from '@xsai/tool'
 
 import { widgetsAdd } from '../../../../shared/eventa'
 
-export function getArtistryConfig(): ResolvedArtistryConfig {
+function getArtistryConfig(): ResolvedArtistryConfig {
   return resolveArtistryConfigFromStore(useArtistryStore())
 }
 

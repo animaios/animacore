@@ -32,7 +32,6 @@
     "@moeru/std": "catalog:",
     "@vueuse/core": "catalog:",
     "gpuu": "^1.0.7",
-    "pinia": "catalog:",
     "valibot": "catalog:",
     "vue": "catalog:"
   },
@@ -40,7 +39,6 @@
     "@electron-toolkit/preload": "^3.0.2",
     "@moeru/eventa": "catalog:",
     "@nekopaw/tempora": "catalog:",
-    "@proj-airi/electron-screen-capture": "workspace:^",
-    "@types/audioworklet": "catalog:"
+    "@proj-airi/electron-screen-capture": "workspace:^"
   }
 }

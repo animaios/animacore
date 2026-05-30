@@ -103,7 +103,7 @@ function supportsJobCallback(provider: ArtistryProvider): provider is ArtistryPr
 }
 
 // Maintaining a registry of providers
-export const artistryProviders = new Map<string, ArtistryProvider>()
+const artistryProviders = new Map<string, ArtistryProvider>()
 artistryProviders.set('comfyui', new ComfyUIProvider())
 artistryProviders.set('replicate', new ReplicateProvider())
 artistryProviders.set('nanobanana', new NanoBananaProvider())

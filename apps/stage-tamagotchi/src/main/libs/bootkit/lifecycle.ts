@@ -2,7 +2,7 @@ const onAppReadyHooks = [] as (() => Promise<void> | void)[]
 const onAppBeforeQuitHooks = [] as (() => Promise<void> | void)[]
 const onAppWindowAllClosedHooks = [] as (() => Promise<void> | void)[]
 
-export function onAppReady(fn: () => Promise<void> | void) {
+function onAppReady(fn: () => Promise<void> | void) {
   onAppReadyHooks.push(fn)
 }
 

@@ -44,10 +44,8 @@
   "devDependencies": {
     "@electron-toolkit/preload": "catalog:",
     "@moeru/eventa": "catalog:",
-    "@moeru/std": "catalog:",
     "async-mutex": "catalog:",
-    "nanoid": "catalog:",
-    "vite": "catalog:"
+    "nanoid": "catalog:"
   },
   "inlinedDependencies": {
     "@electron-toolkit/preload": "3.0.2",

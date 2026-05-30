@@ -116,4 +116,4 @@ export type CardFn<T extends Record<string, unknown> = Record<string, unknown>> 
 
 export const defineCard = (card: Card) => card
 
-export const defineCardFn = <T extends Record<string, unknown> = Record<string, unknown>>(card: CardFn<T>, data: T) => card(data)
+const defineCardFn = <T extends Record<string, unknown> = Record<string, unknown>>(card: CardFn<T>, data: T) => card(data)

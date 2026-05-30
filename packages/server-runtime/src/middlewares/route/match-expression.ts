@@ -87,7 +87,7 @@ export function matchesRouteExpression(expression: RouteTargetExpression, peer: 
   }
 }
 
-export function matchesDestination(destination: string | RouteTargetExpression, peer: AuthenticatedPeer) {
+function matchesDestination(destination: string | RouteTargetExpression, peer: AuthenticatedPeer) {
   if (typeof destination !== 'string') {
     return matchesRouteExpression(destination, peer)
   }
@@ -121,6 +121,6 @@ export function matchesDestination(destination: string | RouteTargetExpression, 
   }
 }
 
-export function matchesDestinations(destinations: Array<string | RouteTargetExpression>, peer: AuthenticatedPeer) {
+function matchesDestinations(destinations: Array<string | RouteTargetExpression>, peer: AuthenticatedPeer) {
   return destinations.some(destination => matchesDestination(destination, peer))
 }

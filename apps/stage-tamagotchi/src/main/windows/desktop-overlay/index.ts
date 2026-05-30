@@ -46,7 +46,7 @@ export function isDesktopOverlayEnabled(): boolean {
  * The recut desktop smoke uses this to surface renderer console lines and
  * mount the in-page smoke bridge.
  */
-export function isDesktopOverlayPollHeartbeatEnabled(): boolean {
+function isDesktopOverlayPollHeartbeatEnabled(): boolean {
   return process.env.AIRI_DESKTOP_OVERLAY_POLL_HEARTBEAT === '1'
 }
 
@@ -129,14 +129,14 @@ export async function setupDesktopOverlayWindow(params: {
 /**
  * Get the current overlay window instance (if active).
  */
-export function getDesktopOverlayWindow(): BrowserWindow | null {
+function getDesktopOverlayWindow(): BrowserWindow | null {
   return overlayWindow
 }
 
 /**
  * Tear down the overlay window.
  */
-export function destroyDesktopOverlay(): void {
+function destroyDesktopOverlay(): void {
   if (overlayWindow && !overlayWindow.isDestroyed()) {
     overlayWindow.close()
     overlayWindow = null

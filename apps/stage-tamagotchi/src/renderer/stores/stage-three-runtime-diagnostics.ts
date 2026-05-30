@@ -147,7 +147,7 @@ export function createDefaultStageHitTestDiagnostics(): StageThreeRuntimeHitTest
   }
 }
 
-export function createDefaultStageVrmLifecycleDiagnostics(): StageThreeRuntimeVrmLifecycleDiagnostics {
+function createDefaultStageVrmLifecycleDiagnostics(): StageThreeRuntimeVrmLifecycleDiagnostics {
   return {
     lastDisposeDurationMs: 0,
     lastDisposeEndAt: 0,

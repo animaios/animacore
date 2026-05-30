@@ -95,7 +95,7 @@ function collectSchemaIssues(schema: unknown, path: string, issues: StrictToolSc
  * Returns:
  * - A list of path-qualified issues; empty means the schema satisfies the local strict rules
  */
-export function collectStrictToolSchemaIssues(tool: Tool): StrictToolSchemaIssue[] {
+function collectStrictToolSchemaIssues(tool: Tool): StrictToolSchemaIssue[] {
   const issues: StrictToolSchemaIssue[] = []
   collectSchemaIssues(tool.function.parameters, `${tool.function.name}.parameters`, issues)
   return issues

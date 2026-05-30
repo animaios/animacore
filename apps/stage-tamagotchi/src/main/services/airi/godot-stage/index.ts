@@ -371,7 +371,7 @@ async function resolveGodotBinary(): Promise<GodotBinaryResolution> {
  *     -> renderer invoke handlers
  *       -> Godot sidecar process + websocket bridge
  */
-export function createGodotStageManager(): GodotStageManager {
+function createGodotStageManager(): GodotStageManager {
   const log = useLogg('main/godot-stage').useGlobalConfig()
   const lifecycleMutex = new Mutex()
   const statusListeners = createListenerChannel<ElectronGodotStageStatus>(

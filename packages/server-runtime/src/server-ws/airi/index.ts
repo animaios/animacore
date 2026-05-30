@@ -297,7 +297,7 @@ export function resolveEventDelivery(event: WebSocketEvent): DeliveryConfig | un
  * Returns:
  * - A reusable `server-ws/core` codec configured for AIRI events
  */
-export function createEventSerializer() {
+function createEventSerializer() {
   return createEventCodec<WebSocketEvent>({
     parse: parseEvent,
     stringify: stringifyEvent,

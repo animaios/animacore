@@ -97,7 +97,7 @@ export interface InferenceServiceProvidersService {
  * Returns:
  * - A stable object containing provider domain operations.
  */
-export function createInferenceServiceProvidersService(): InferenceServiceProvidersService {
+function createInferenceServiceProvidersService(): InferenceServiceProvidersService {
   function requestOptions(options?: InferenceServiceProviderServiceOptions): RequestOptions | undefined {
     return options?.abortSignal ? { init: { signal: options.abortSignal } } : undefined
   }

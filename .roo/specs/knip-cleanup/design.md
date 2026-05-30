@@ -1,59 +1,33 @@
-# Knip Cleanup — Design (Phase 2)
+# Knip Cleanup Extended — Design
 
 ## Approach
 
-Phase 1 resolved the bulk of false positives by adding Vue page/layout entry patterns and removing unused dependencies. Phase 2 addresses the remaining 29 unused files and 58 unused exports through four distinct change areas, each targeting a specific category identified in the investigation.
+This spec extends the existing [`knip-cleanup`](.roo/specs/knip-cleanup/design.md) work. Phase 1 and most of Phase 2 from that spec are complete; 4 carry-over tasks (adding `entry` arrays) remain. This design covers those carry-over tasks plus three new phases: configuration refinements, dependency pruning, and export cleanup.
+
+Each change area targets a specific file or configuration with minimal, surgical edits. No refactoring or feature changes are involved.
 
 ## Change Areas
 
-### D5: Add Dynamic Entry Points to knip.json (Category A)
+### D0: Add Entry Arrays to 4 Workspaces (Carry-Over from Existing Spec)
 
 **Target file:** [`knip.json`](knip.json)
 
-**Strategy:** Two files are actively used at runtime but loaded via string paths that Knip cannot trace statically. Add them to the `entry` array in their respective workspace configurations.
+**Strategy:** Four workspace configurations lack `entry` arrays, causing Knip to flag every exported symbol as potentially unused. Add `"entry": ["src/index.ts"]` to each.
 
-**Changes to `apps/stage-tamagotchi` workspace entry:**
+**Changes:**
 
-```json
-"entry": [
-  "src/main/index.ts",
-  "src/preload/index.ts",
-  "src/renderer/main.ts",
-  "src/renderer/beat-sync.main.ts",
-  "src/renderer/pages/**/*.vue",
-  "src/renderer/layouts/**/*.vue",
-  "src/preload/beat-sync.ts"
-]
-```
+| Workspace | Current Config | Change |
+|-----------|---------------|--------|
+| `packages/plugin-sdk` | `project` only + negation | Add `"entry": ["src/index.ts"]` |
+| `packages/core-agent` | `project` only | Add `"entry": ["src/index.ts"]` |
+| `packages/stage-ui-three` | `project` only | Add `"entry": ["src/index.ts"]` |
+| `packages/ccc` | `project` only | Add `"entry": ["src/index.ts"]` |
 
-**Add `packages/stage-ui-live2d` workspace with entry:**
-
-```json
-"packages/stage-ui-live2d": {
-  "entry": [
-    "src/utils/live2d-structure-report.ts"
-  ],
-  "project": [
-    "src/**/*.ts",
-    "src/**/*.vue"
-  ]
-}
-```
-
-**Rationale:** [`src/preload/beat-sync.ts`](apps/stage-tamagotchi/src/preload/beat-sync.ts) is referenced as a compiled string path `../preload/beat-sync.mjs` in [`src/main/windows/beat-sync/index.ts`](apps/stage-tamagotchi/src/main/windows/beat-sync/index.ts:13). [`src/utils/live2d-structure-report.ts`](packages/stage-ui-live2d/src/utils/live2d-structure-report.ts) is a standalone CLI script invoked directly from the command line, not imported by any module.
-
----
-
-### D6: Exclude Test Data from Knip Project Scan (Category B)
-
-**Target file:** [`knip.json`](knip.json)
-
-**Strategy:** The `testdata/` directory in `packages/plugin-sdk` contains test fixture files that are only imported during Vitest runs via dynamic `join(import.meta.dirname, ...)` path construction. Knip cannot trace these dynamic imports. Exclude them from the project scan using negation patterns.
-
-**Changes to `packages/plugin-sdk` workspace:**
+**Resulting `packages/plugin-sdk` config:**
 
 ```json
 "packages/plugin-sdk": {
+  "entry": ["src/index.ts"],
   "project": [
     "src/**/*.ts",
     "!src/**/testdata/**"
@@ -61,120 +35,321 @@ Phase 1 resolved the bulk of false positives by adding Vue page/layout entry pat
 }
 ```
 
-**Rationale:** The four testdata files (`test-error-plugin.ts`, `test-injected-host-apis-plugin.ts`, `test-no-connect-plugin.ts`, `test-normal-plugin.ts`) are legitimate test fixtures imported via [`join(import.meta.dirname, 'testdata', ...)`](packages/plugin-sdk/src/plugin-host/core.test.ts:65) in [`core.test.ts`](packages/plugin-sdk/src/plugin-host/core.test.ts). Knip's Vitest integration traces test file imports but cannot resolve dynamically-constructed paths.
+**Resulting `packages/core-agent` config:**
+
+```json
+"packages/core-agent": {
+  "entry": ["src/index.ts"],
+  "project": [
+    "src/**/*.ts"
+  ]
+}
+```
+
+**Resulting `packages/stage-ui-three` config:**
+
+```json
+"packages/stage-ui-three": {
+  "entry": ["src/index.ts"],
+  "project": [
+    "src/**/*.ts"
+  ]
+}
+```
+
+**Resulting `packages/ccc` config:**
+
+```json
+"packages/ccc": {
+  "entry": ["src/index.ts"],
+  "project": [
+    "src/**/*.ts"
+  ]
+}
+```
+
+**Rationale:** [`packages/plugin-sdk/src/index.ts`](packages/plugin-sdk/src/index.ts) re-exports plugin contracts and channels. [`packages/core-agent/src/index.ts`](packages/core-agent/src/index.ts) re-exports agent context types and hook types. [`packages/stage-ui-three/src/index.ts`](packages/stage-ui-three/src/index.ts) exports the `ThreeScene` component. [`packages/ccc/src/index.ts`](packages/ccc/src/index.ts) re-exports from `define` and `export` barrels. Without `entry`, Knip has no anchor to trace the public API surface.
 
 ---
 
-### D7: Add Package Entry Points to knip.json (Category C)
+### D1: Remove Redundant `*.vue` Project Patterns from knip.json
 
 **Target file:** [`knip.json`](knip.json)
 
-**Strategy:** Several workspace configurations in [`knip.json`](knip.json) only define `project` patterns but lack `entry` arrays. Without an entry point, Knip treats every exported symbol as potentially unused because it doesn't know which files constitute the package's public API surface. Add `entry` arrays pointing to each package's main barrel file.
+**Strategy:** Knip warns that `.vue` files are already registered via compiler configurations. The `"src/**/*.vue"` patterns in 6 workspace `project` arrays are redundant. Remove them, leaving only `"src/**/*.ts"` (and any negation patterns).
 
 **Changes:**
 
-| Workspace | Entry to Add | Reason |
-|-----------|-------------|--------|
-| `packages/plugin-sdk` | `"entry": ["src/index.ts"]` | [`src/index.ts`](packages/plugin-sdk/src/index.ts) re-exports plugin contracts; [`src/channels/index.ts`](packages/plugin-sdk/src/channels/index.ts) exports `channels`, `setActiveHostChannel`, `setActiveDataChannel` — public API |
-| `packages/core-agent` | `"entry": ["src/index.ts"]` | [`src/index.ts`](packages/core-agent/src/index.ts) re-exports from messages, runtime, session; [`src/messages/index.ts`](packages/core-agent/src/messages/index.ts) is a barrel for compaction/projection/render/types |
-| `packages/stage-ui-three` | `"entry": ["src/index.ts"]` | [`src/index.ts`](packages/stage-ui-three/src/index.ts) re-exports from composables, stores, trace, utils; [`src/composables/index.ts`](packages/stage-ui-three/src/composables/index.ts) is a barrel for shader/vrm |
-| `packages/ccc` | `"entry": ["src/index.ts"]` | [`src/index.ts`](packages/ccc/src/index.ts) re-exports from define, export, utils; [`src/define/ext.ts`](packages/ccc/src/define/ext.ts) exports `defineExt` and `Ext` type but is NOT re-exported from [`src/define/index.ts`](packages/ccc/src/define/index.ts) — this is a genuine missing re-export that should also be fixed |
+| Workspace | Before | After |
+|-----------|--------|-------|
+| `apps/stage-tamagotchi` | `["src/**/*.ts", "src/**/*.vue"]` | `["src/**/*.ts"]` |
+| `packages/stage-ui` | `["src/**/*.ts", "src/**/*.vue"]` | `["src/**/*.ts"]` |
+| `packages/ui-transitions` | `["src/**/*.ts", "src/**/*.vue", "playground/src/**/*.ts"]` | `["src/**/*.ts", "playground/src/**/*.ts"]` |
+| `packages/stage-ui-three` | `["src/**/*.ts", "src/**/*.vue"]` | `["src/**/*.ts"]` |
+| `packages/stage-ui-live2d` | `["src/**/*.ts", "src/**/*.vue"]` | `["src/**/*.ts"]` |
+| `packages/stage-layouts` | `["src/**/*.ts", "src/**/*.vue"]` | `["src/**/*.ts"]` |
 
-**Additional fix for `packages/ccc`:** [`src/define/ext.ts`](packages/ccc/src/define/ext.ts) exports `defineExt` and the `Ext` type, but [`src/define/index.ts`](packages/ccc/src/define/index.ts) only re-exports `Card` and `defineCard` from `card.ts`. The `Ext` type and `defineExt` function should be added to the barrel:
+**Rationale:** Knip's compiler configuration already handles `.vue` file resolution. Explicit `*.vue` glob patterns in `project` are redundant and produce warnings. Removing them silences the warnings without affecting analysis accuracy.
 
-```ts
-// packages/ccc/src/define/index.ts
-export { type Card, defineCard } from './card'
-export { type Ext, defineExt } from './ext'
+---
+
+### D2: Remove Redundant Entry Point from ui-transitions
+
+**Target file:** [`knip.json`](knip.json)
+
+**Strategy:** The `packages/ui-transitions` workspace has `"playground/src/main.ts"` in its `entry` array. Knip flagged this as redundant because the playground is a development tool, not part of the library's public API surface.
+
+**Change:** Remove the entire `entry` array from the `packages/ui-transitions` workspace configuration.
+
+**Before:**
+
+```json
+"packages/ui-transitions": {
+  "entry": [
+    "playground/src/main.ts"
+  ],
+  "project": [
+    "src/**/*.ts",
+    "playground/src/**/*.ts"
+  ]
+}
 ```
 
-**Rationale:** When a workspace has no `entry`, Knip has no anchor to start tracing imports from. Every export in every file becomes a candidate for "unused" because Knip doesn't know which exports form the package's intended public surface. Adding `src/index.ts` as the entry tells Knip: "anything reachable from this file is used; anything not reachable is potentially dead."
+**After:**
+
+```json
+"packages/ui-transitions": {
+  "project": [
+    "src/**/*.ts",
+    "playground/src/**/*.ts"
+  ]
+}
+```
+
+**Rationale:** The playground entry point is not part of the package's public API. Knip can trace the library's actual exports from the `package.json` `exports` field. The playground files are covered by the `project` pattern for completeness but should not be treated as entry points.
 
 ---
 
-### D8: Delete Genuine Dead Code (Category D)
+### D3: Fix Broken Export Path in stage-layouts/package.json
 
-**Strategy:** 16 files have zero imports anywhere in the workspace and are not dynamically loaded. Delete them.
+**Target file:** [`packages/stage-layouts/package.json`](packages/stage-layouts/package.json:22)
 
-#### apps/stage-tamagotchi (9 files)
+**Strategy:** The export path `"./components/Layouts/ViewControls/*": "./src/components/Layouts/ViewControls/*.vue"` points to a non-existent directory. The actual [`ViewControls.vue`](packages/stage-layouts/src/components/Layouts/InteractiveArea/Actions/ViewControls.vue) lives under `InteractiveArea/Actions/`. The component is already reachable via the existing `"./components/Layouts/InteractiveArea/Actions/*"` export at [line 21](packages/stage-layouts/package.json:21).
 
-| File | Reason for Deletion |
-|------|---------------------|
-| [`src/main/services/electron/system-preferences.ts`](apps/stage-tamagotchi/src/main/services/electron/system-preferences.ts) | `createSystemPreferencesService` — zero imports in workspace |
-| [`src/main/windows/dashboard/index.ts`](apps/stage-tamagotchi/src/main/windows/dashboard/index.ts) | `setupDashboardWindow` not imported in [`src/main/index.ts`](apps/stage-tamagotchi/src/main/index.ts:41); dashboard window is dead |
-| [`src/main/windows/dashboard/rpc/index.electron.ts`](apps/stage-tamagotchi/src/main/windows/dashboard/rpc/index.electron.ts) | Only imported by dead dashboard/index.ts — cascade delete |
-| [`src/main/windows/shared/persistence.ts`](apps/stage-tamagotchi/src/main/windows/shared/persistence.ts) | Re-export barrel from `../../libs/electron/persistence` — zero imports |
-| [`src/renderer/components/IconAnimation.vue`](apps/stage-tamagotchi/src/renderer/components/IconAnimation.vue) | Zero imports found |
-| [`src/renderer/components/stage-islands/resource-status-island/loading-component-detail.vue`](apps/stage-tamagotchi/src/renderer/components/stage-islands/resource-status-island/loading-component-detail.vue) | Zero imports found |
-| [`src/renderer/composables/icon-animation.ts`](apps/stage-tamagotchi/src/renderer/composables/icon-animation.ts) | `useIconAnimation` — zero imports from other files |
-| [`src/renderer/stores/window.ts`](apps/stage-tamagotchi/src/renderer/stores/window.ts) | `useWindowStore` — zero imports found |
-| [`src/renderer/utils/windows.ts`](apps/stage-tamagotchi/src/renderer/utils/windows.ts) | Stub `startClickThrough`/`stopClickThrough` — zero imports |
+**Change:** Remove line 22 from the `exports` section.
 
-**Note on dashboard directory:** The entire [`src/main/windows/dashboard/`](apps/stage-tamagotchi/src/main/windows/dashboard/) directory should be deleted since both files within it are dead. The [`src/main/windows/shared/persistence.ts`](apps/stage-tamagotchi/src/main/windows/shared/persistence.ts) barrel is also dead — consumers import directly from [`src/main/libs/electron/persistence`](apps/stage-tamagotchi/src/main/libs/electron/persistence) instead.
+**Before:**
 
-**Note on icon-animation cluster:** [`IconAnimation.vue`](apps/stage-tamagotchi/src/renderer/components/IconAnimation.vue), [`icon-animation.ts`](apps/stage-tamagotchi/src/renderer/composables/icon-animation.ts) form a dead cluster — the composable is only used by the component, and neither is imported externally.
+```json
+"exports": {
+  ".": "./src/index.ts",
+  "./layouts/*": "./src/layouts/*.vue",
+  "./components/Layouts/*": "./src/components/Layouts/*.vue",
+  "./components/Layouts/InteractiveArea/Actions/*": "./src/components/Layouts/InteractiveArea/Actions/*.vue",
+  "./components/Layouts/ViewControls/*": "./src/components/Layouts/ViewControls/*.vue",
+  "./components/Widgets/*": "./src/components/Widgets/*.vue",
+  "./components/Backgrounds/*": "./src/components/Backgrounds/*",
+  "./composables/*": "./src/composables/*.ts",
+  "./stores/*": "./src/stores/*.ts"
+}
+```
 
-#### packages/plugin-sdk (4 files)
+**After:**
 
-| File | Reason for Deletion |
-|------|---------------------|
-| [`src/plugin/local.ts`](packages/plugin-sdk/src/plugin/local.ts) | Barrel re-export — zero imports |
-| [`src/plugin/local/index.ts`](packages/plugin-sdk/src/plugin/local/index.ts) | Empty stub with TODO — zero imports |
-| [`src/plugin/remote.ts`](packages/plugin-sdk/src/plugin/remote.ts) | Barrel re-export — zero imports |
-| [`src/plugin/remote/index.ts`](packages/plugin-sdk/src/plugin/remote/index.ts) | Empty stub with TODO — zero imports |
+```json
+"exports": {
+  ".": "./src/index.ts",
+  "./layouts/*": "./src/layouts/*.vue",
+  "./components/Layouts/*": "./src/components/Layouts/*.vue",
+  "./components/Layouts/InteractiveArea/Actions/*": "./src/components/Layouts/InteractiveArea/Actions/*.vue",
+  "./components/Widgets/*": "./src/components/Widgets/*.vue",
+  "./components/Backgrounds/*": "./src/components/Backgrounds/*",
+  "./composables/*": "./src/composables/*.ts",
+  "./stores/*": "./src/stores/*.ts"
+}
+```
 
-**Note:** These are placeholder stubs with TODO comments indicating incomplete implementation. They should be deleted since no code references them.
-
-#### packages/stage-ui (3 files)
-
-| File | Reason for Deletion |
-|------|---------------------|
-| [`src/components/animations/Replayable.vue`](packages/stage-ui/src/components/animations/Replayable.vue) | Zero imports from other files |
-| [`src/utils/relative-time.ts`](packages/stage-ui/src/utils/relative-time.ts) | `formatRelativeTime` — zero imports |
-| [`src/utils/stream.ts`](packages/stage-ui/src/utils/stream.ts) | `ControllableStream`/`createControllableStream` — zero imports |
-
-**Note on Replayable.vue:** The companion composable [`use-replayable.ts`](packages/stage-ui/src/components/animations/use-replayable.ts) IS imported by [`Replayable.vue`](packages/stage-ui/src/components/animations/Replayable.vue) itself, but since Replayable.vue is dead, the composable becomes dead too. However, Knip may not flag `use-replayable.ts` separately since it's only used internally within the dead component. Verify after deletion whether `use-replayable.ts` should also be removed.
+**Rationale:** The broken path resolves to nothing — no `ViewControls/` directory exists. `ViewControls.vue` is already covered by the `InteractiveArea/Actions/*` wildcard. Removing the broken entry prevents resolution errors and cleans the package manifest.
 
 ---
 
-### D9: Verification
+### D4: Remove Unused chess.js Catalog Entry
 
-After all changes:
+**Target file:** [`pnpm-workspace.yaml`](pnpm-workspace.yaml:49)
 
-1. Run `pnpm install` to ensure lockfile consistency
-2. Run `pnpm -F @proj-airi/stage-tamagotchi typecheck` to confirm no type errors from file deletions
-3. Run `pnpm knip` and verify:
-   - Category A, B, C files are no longer flagged
-   - Category D files are gone (deleted)
-   - Remaining unused exports count drops significantly
-4. Review any remaining unused exports and remove unnecessary `export` keywords from internally-used functions
+**Strategy:** The `chess.js: ^1.4.0` catalog entry is orphaned — `chess.js` was removed from [`apps/stage-tamagotchi/package.json`](apps/stage-tamagotchi/package.json) during the original Phase 1 cleanup, and no other workspace references it.
+
+**Change:** Remove line 49 (`chess.js: ^1.4.0`) from the `catalog` section.
+
+**Rationale:** Orphaned catalog entries create confusion and may cause `pnpm install` to resolve unnecessary packages. Since `catalogMode: prefer` is set at [line 92](pnpm-workspace.yaml:92), pnpm will try to use catalog versions when available — an orphaned entry could accidentally satisfy a future dependency request.
+
+---
+
+### D5: Prune Unused Dependencies — Incremental Approach
+
+**Strategy:** Remove unused dependencies in two passes to minimize risk of build breakage:
+
+1. **Pass 1 — Root/Dev Dependencies:** Remove verified unused devDependencies first. These are typically build tooling, type definitions, and icon packs that are no longer imported. Removing devDependencies has lower risk since they don't affect production bundles.
+
+2. **Pass 2 — Package-Level Production Dependencies:** Remove unused production dependencies per workspace, grouped by risk level. After each group, run typecheck + build to verify no breakage.
+
+**High-confidence removals for `packages/stage-ui`:**
+
+The following 13 packages in [`packages/stage-ui/package.json`](packages/stage-ui/package.json) have zero imports in the `src/` tree:
+
+| Package | Line | Removal Command |
+|---------|------|-----------------|
+| `@proj-airi/audio` | 74 | Part of bulk remove |
+| `@proj-airi/core-character` | 78 | Part of bulk remove |
+| `@proj-airi/font-chillroundm` | 80 | Part of bulk remove |
+| `@ricky0123/vad-web` | 93 | Part of bulk remove |
+| `@shopify/draggable` | 95 | Part of bulk remove |
+| `d3` | 117 | Part of bulk remove |
+| `embla-carousel-autoplay` | 120 | Part of bulk remove |
+| `gpuu` | 123 | Part of bulk remove |
+| `hono` | 124 | Part of bulk remove |
+| `rehype-parse` | 136 | Part of bulk remove |
+| `splitpanes` | 143 | Part of bulk remove |
+| `unist-builder` | 145 | Part of bulk remove |
+| `unist-util-visit` | 146 | Part of bulk remove |
+
+**Single command:**
+
+```bash
+pnpm --filter @proj-airi/stage-ui remove @proj-airi/audio @proj-airi/core-character @proj-airi/font-chillroundm @ricky0123/vad-web @shopify/draggable d3 embla-carousel-autoplay gpuu hono rehype-parse splitpanes unist-builder unist-util-visit
+```
+
+**Associated type packages to remove from devDependencies:**
+
+| Package | Reason |
+|---------|--------|
+| `@types/d3` | `d3` is being removed |
+| `@types/splitpanes` | `splitpanes` is being removed |
+| `@types/unist` | `unist-util-visit` and `unist-builder` are being removed |
+
+```bash
+pnpm --filter @proj-airi/stage-ui remove @types/d3 @types/splitpanes @types/unist
+```
+
+**Verification after stage-ui pruning:**
+
+```bash
+pnpm -F @proj-airi/stage-ui typecheck
+pnpm -F @proj-airi/stage-ui test:run
+```
+
+**Note on remaining 75 unused dependencies + 66 devDependencies:** A full Knip run should be executed before implementation to extract the complete list. The implementer should group removals by workspace and verify after each group. Some dependencies may be implicitly used by Vite plugins or bundler config and should be verified before removal.
+
+---
+
+### D6: Internalize Unused Exports
+
+**Strategy:** For each unused export that is only consumed within its own declaring file, remove the `export` keyword. This is a surgical, file-level change that does not affect inter-module dependencies.
+
+**Example — [`prepareVrmOutlineRuntime`](packages/stage-ui-three/src/composables/vrm/outline.ts:464):**
+
+The function is exported at line 464 but only called internally at line 497 within [`createVrmOutlineHook`](packages/stage-ui-three/src/composables/vrm/outline.ts:491). Remove `export`:
+
+```ts
+// Before:
+export function prepareVrmOutlineRuntime(vrm: VRM) { ... }
+
+// After:
+function prepareVrmOutlineRuntime(vrm: VRM) { ... }
+```
+
+Similarly, [`disposeVrmOutlineRuntime`](packages/stage-ui-three/src/composables/vrm/outline.ts:484) is exported but only called internally within the same file's `onDispose` hook. Remove `export` from it as well.
+
+**Process for all 58 unused exports:**
+
+1. Run `pnpm knip` to get the current list of unused exports
+2. For each export, verify it has zero external imports using `search_files`
+3. If zero external imports found, remove the `export` keyword
+4. If external imports exist, the Knip flag may be a false positive — skip and document
+
+---
+
+### D7: Retain Public API Exports
+
+**Strategy:** Some unused exports are intentionally kept as part of a public SDK/API surface. These should not be removed but instead documented to prevent future Knip flags.
+
+**Workspaces with public API intent:**
+
+| Workspace | Reason to Retain |
+|-----------|-----------------|
+| `packages/plugin-sdk` | Public plugin development SDK — exports are intended for external consumers |
+| `packages/core-agent` | Public agent contract types — intended for cross-package use |
+
+**Approach:** Add `@public` JSDoc tags to retained exports, or add them to [`knip.json`](knip.json) `ignoreExports` configuration:
+
+```json
+"ignoreExports": [
+  "packages/plugin-sdk/src/**",
+  "packages/core-agent/src/**"
+]
+```
+
+**Rationale:** Public SDK packages should export their full contract surface even if no current consumer exists. Knip flags are false positives for these cases.
+
+---
+
+### D8: Prune Orphaned Types
+
+**Strategy:** Remove 112 unused exported types/interfaces that have zero import references across the monorepo. Since types are erased at compile time, removal has no runtime impact.
+
+**Process:**
+
+1. Run `pnpm knip` to extract the full list of 112 unused types
+2. For each type, verify zero import references using `search_files`
+3. Check that the type is not:
+   - Referenced in Vue template type inference (e.g., used as a prop type without explicit import)
+   - Used as a generic parameter constraint in an otherwise-used type
+   - Part of a planned public API surface (per D7)
+4. Remove the type declaration and any associated JSDoc
+5. If the type was the only export in a file, consider deleting the entire file
+
+**Rationale:** Unused exported types add noise to the codebase and broaden the public API surface unintentionally. Removing them improves code clarity and reduces Knip flag count.
+
+---
 
 ## Flow Diagram
 
 ```mermaid
 flowchart TD
-    A[Start Phase 2] --> B[D5: Add dynamic entry points to knip.json]
-    B --> C[D6: Exclude testdata from knip project scan]
-    C --> D[D7: Add package entry points to knip.json]
-    D --> E[D7b: Fix ccc define/ext barrel re-export]
-    E --> F[D8: Delete 16 dead code files]
-    F --> G[Run pnpm install]
-    G --> H[Run typecheck]
-    H --> I[Run knip]
-    I --> J{Report clean?}
-    J -->|Yes| K[Done]
-    J -->|No| L[Review remaining unused exports]
-    L --> M[Remove unnecessary export keywords]
-    M --> K
+    A[Start] --> B[D0: Add entry arrays to 4 workspaces in knip.json]
+    B --> C[D1: Remove redundant *.vue project patterns from knip.json]
+    C --> D[D2: Remove redundant playground entry from ui-transitions]
+    D --> E[D3: Fix broken ViewControls export path in stage-layouts]
+    E --> F[D4: Remove chess.js catalog entry from pnpm-workspace.yaml]
+    F --> G[Run pnpm install + typecheck + knip — verify Phase 1 clean]
+    G --> H{Phase 1 clean?}
+    H -->|Yes| I[D5: Prune unused dependencies — Pass 1: devDeps]
+    H -->|No| J[Fix remaining issues]
+    J --> G
+    I --> K[D5: Prune unused dependencies — Pass 2: stage-ui prod deps]
+    K --> L[Run typecheck + test per workspace group]
+    L --> M{Build clean?}
+    M -->|Yes| N[D6: Internalize unused exports]
+    M -->|No| O[Revert broken removals + verify]
+    O --> I
+    N --> P[D7: Mark public API exports with @public or knip ignoreExports]
+    P --> Q[D8: Prune orphaned types]
+    Q --> R[Run pnpm install + typecheck + knip + lint — final verification]
+    R --> S{Report clean?}
+    S -->|Yes| T[Done]
+    S -->|No| U[Review remaining flags + document genuine issues]
+    U --> T
 ```
 
 ## Risk Assessment
 
 | Risk | Mitigation |
 |------|------------|
-| Deleting a file that is dynamically loaded at runtime | All Category D files were verified with `search_files` — zero imports found across the entire workspace |
-| Dashboard window might be re-enabled in future | Dashboard code is clearly dead — not imported in main index.ts. If needed later, it can be restored from git history |
-| Removing `export` from internally-used functions breaks external consumers | Only remove `export` from functions that Knip confirms are unused AND that have zero external imports. Verify each individually |
-| Adding entry points hides genuine unused exports | Entry points only mark the public API surface. After adding entries, remaining flags are genuine dead exports |
-| `use-replayable.ts` becomes orphaned after Replayable.vue deletion | Verify after deletion; remove if Knip flags it |
-| `packages/ccc` define/ext re-export change affects downstream | `defineExt` and `Ext` are currently unreachable from the package root, so adding them to the barrel is a net improvement with zero breakage risk |
+| Removing `*.vue` from project patterns causes Knip to miss Vue files | Knip's compiler config already handles `.vue` — this is confirmed by Knip's own warning message |
+| Removing `playground/src/main.ts` entry causes Knip to flag playground files | Playground is a dev tool, not public API; `project` pattern still covers the files for analysis |
+| Removing broken ViewControls export breaks existing consumers | No `ViewControls/` directory exists — the export already resolves to nothing. The component is reachable via `InteractiveArea/Actions/*` |
+| Removing `chess.js` catalog entry breaks a workspace that uses it | `chess.js` was already removed from all package.json files in Phase 1; no workspace references it |
+| Bulk dependency removal causes build failures | Incremental approach: remove per workspace group, verify with typecheck + test after each group |
+| Removing `export` from internally-used functions breaks external consumers | Each export is verified with `search_files` for zero external imports before removal |
+| Removing orphaned types breaks Vue template type inference | Each type is checked for implicit Vue prop usage before removal |
+| Public SDK exports are incorrectly removed | D7 explicitly retains plugin-sdk and core-agent exports with `@public` tags or Knip ignore rules |

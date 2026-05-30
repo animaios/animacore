@@ -38,7 +38,7 @@ function emitCacheTrace(action: 'clear' | 'stash' | 'take', scopeKey: string, re
   })
 }
 
-export function takeManagedVrmInstance(scopeKey: string, modelSrc: string) {
+function takeManagedVrmInstance(scopeKey: string, modelSrc: string) {
   const cached = managedVrmCacheState.detachedByScope[scopeKey]
   if (!cached || cached.modelSrc !== modelSrc) {
     emitCacheTrace('take', scopeKey, 'miss', modelSrc)
@@ -50,7 +50,7 @@ export function takeManagedVrmInstance(scopeKey: string, modelSrc: string) {
   return cached
 }
 
-export function stashManagedVrmInstance(instance: ManagedVrmInstance) {
+function stashManagedVrmInstance(instance: ManagedVrmInstance) {
   const { scopeKey } = instance
   const previous = managedVrmCacheState.detachedByScope[scopeKey]
   managedVrmCacheState.detachedByScope[scopeKey] = instance
@@ -68,7 +68,7 @@ export function stashManagedVrmInstance(instance: ManagedVrmInstance) {
   return undefined
 }
 
-export function clearManagedVrmInstance(scopeKey: string) {
+function clearManagedVrmInstance(scopeKey: string) {
   const cached = managedVrmCacheState.detachedByScope[scopeKey]
   delete managedVrmCacheState.detachedByScope[scopeKey]
 

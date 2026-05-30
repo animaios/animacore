@@ -27,7 +27,7 @@ function stringifyError(error: unknown) {
  * Returns:
  * - A strict Zod schema matching the persisted MCP server shape
  */
-export const electronMcpStdioServerConfigSchema = z.object({
+const electronMcpStdioServerConfigSchema = z.object({
   command: z.string().min(1),
   args: z.array(z.string()).optional(),
   env: z.record(z.string(), z.string()).optional(),
@@ -49,7 +49,7 @@ export const electronMcpStdioServerConfigSchema = z.object({
  * Returns:
  * - A strict Zod schema for the full MCP config file
  */
-export const electronMcpConfigSchema = z.object({
+const electronMcpConfigSchema = z.object({
   mcpServers: z.record(z.string(), electronMcpStdioServerConfigSchema),
 }).strict() satisfies z.ZodType<ElectronMcpStdioConfigFile>
 
@@ -71,7 +71,7 @@ export const electronMcpConfigSchema = z.object({
  * Returns:
  * - A semicolon-delimited message preserving issue paths
  */
-export function formatElectronMcpConfigIssues(issues: z.ZodIssue[]) {
+function formatElectronMcpConfigIssues(issues: z.ZodIssue[]) {
   return issues.map(issue => `${issue.path.join('.') || '<root>'}: ${issue.message}`).join('; ')
 }
 
@@ -88,7 +88,7 @@ export function formatElectronMcpConfigIssues(issues: z.ZodIssue[]) {
  * Returns:
  * - A validated `ElectronMcpStdioConfigFile`
  */
-export function parseElectronMcpConfig(value: unknown): ElectronMcpStdioConfigFile {
+function parseElectronMcpConfig(value: unknown): ElectronMcpStdioConfigFile {
   const validated = electronMcpConfigSchema.safeParse(value)
   if (!validated.success) {
     throw new Error(formatElectronMcpConfigIssues(validated.error.issues))
@@ -110,7 +110,7 @@ export function parseElectronMcpConfig(value: unknown): ElectronMcpStdioConfigFi
  * Returns:
  * - A validated `ElectronMcpStdioConfigFile`
  */
-export function parseElectronMcpConfigText(text: string): ElectronMcpStdioConfigFile {
+function parseElectronMcpConfigText(text: string): ElectronMcpStdioConfigFile {
   let parsed: unknown
 
   try {

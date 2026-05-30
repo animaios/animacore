@@ -45,7 +45,7 @@ function refDelayed<T>(outRef: Ref<T>, delay: number, options?: { immediate?: bo
   return delayedRef
 }
 
-export const useResourcesStore = defineStore('resources', () => {
+const useResourcesStore = defineStore('resources', () => {
   const resources = ref<Resources>(new Map())
 
   const pendingResources = computed(() => {

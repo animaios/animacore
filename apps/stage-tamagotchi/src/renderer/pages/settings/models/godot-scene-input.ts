@@ -15,7 +15,7 @@ import { DisplayModelFormat } from '@proj-airi/stage-ui/stores/display-models'
  * Returns:
  * - `true` only for VRM display models
  */
-export function isGodotSceneInputSupportedDisplayModel(model: DisplayModel): boolean {
+function isGodotSceneInputSupportedDisplayModel(model: DisplayModel): boolean {
   return model.format === DisplayModelFormat.VRM
 }
 

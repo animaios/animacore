@@ -26,7 +26,7 @@ export const POSTHOG_PROJECT_KEY_POCKET
     ?? 'phc_pzjziJjrVZpa9SqnQqq0QEKvkmuCPH7GDTA6TbRTEf9' // cspell:disable-line
 
 // FIXME: Using the same key for 'web' for now.
-export const POSTHOG_PROJECT_KEY_DOCS
+const POSTHOG_PROJECT_KEY_DOCS
   = import.meta.env.VITE_POSTHOG_PROJECT_KEY_DOCS
     ?? 'phc_pzjziJjrVZpa9SqnQqq0QEKvkmuCPH7GDTA6TbRTEf9' // cspell:disable-line
 

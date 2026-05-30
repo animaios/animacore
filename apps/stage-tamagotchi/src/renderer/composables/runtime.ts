@@ -1,7 +1,7 @@
 import { computedAsync } from '@vueuse/core'
 import { computed, ref } from 'vue'
 
-export function useAppRuntime() {
+function useAppRuntime() {
   const isInitialized = ref(false)
 
   const platform = computedAsync(async () => {

@@ -39,8 +39,7 @@
     "@moeru/eventa": "catalog:",
     "@moeru/std": "catalog:",
     "@vueuse/core": "catalog:",
-    "es-toolkit": "catalog:",
-    "std-env": "catalog:"
+    "es-toolkit": "catalog:"
   },
   "devDependencies": {
     "@proj-airi/electron-eventa": "workspace:^"

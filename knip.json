@@ -19,8 +19,7 @@
         "src/renderer/layouts/**/*.vue"
       ],
       "project": [
-        "src/**/*.ts",
-        "src/**/*.vue"
+        "src/**/*.ts"
       ]
     },
     "packages/stage-ui": {
@@ -29,24 +28,18 @@
         "stories/setup.ts"
       ],
       "project": [
-        "src/**/*.ts",
-        "src/**/*.vue"
+        "src/**/*.ts"
       ]
     },
     "packages/ui-transitions": {
-      "entry": [
-        "playground/src/main.ts"
-      ],
       "project": [
         "src/**/*.ts",
-        "src/**/*.vue",
         "playground/src/**/*.ts"
       ]
     },
     "packages/stage-ui-three": {
       "project": [
-        "src/**/*.ts",
-        "src/**/*.vue"
+        "src/**/*.ts"
       ]
     },
     "packages/plugin-sdk": {
@@ -70,14 +63,12 @@
         "src/utils/live2d-structure-report.ts"
       ],
       "project": [
-        "src/**/*.ts",
-        "src/**/*.vue"
+        "src/**/*.ts"
       ]
     },
     "packages/stage-layouts": {
       "project": [
-        "src/**/*.ts",
-        "src/**/*.vue"
+        "src/**/*.ts"
       ]
     }
   }

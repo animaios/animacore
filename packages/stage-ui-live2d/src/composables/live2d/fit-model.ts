@@ -16,7 +16,7 @@ const startingOffsetY = computed(() => {
  *  and the model centered horizontally when `position.x == 0`,
  *  showing upper half of the body when `position.y == 0`
  */
-export function useFitModel(
+function useFitModel(
   canvasDim: MaybeRefOrGetter<{ width: number, height: number }>,
   modelDim: MaybeRefOrGetter<{ width: number, height: number }>,
 ) {

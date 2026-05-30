@@ -37,7 +37,7 @@ export function transparentWindowConfig(): BrowserWindowConstructorOptions {
   }
 }
 
-export function blurryWindowConfig(): BrowserWindowConstructorOptions {
+function blurryWindowConfig(): BrowserWindowConstructorOptions {
   return {
     vibrancy: 'hud',
     backgroundMaterial: 'acrylic',

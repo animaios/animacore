@@ -15,7 +15,7 @@ import { dirname, isAbsolute, join, resolve } from 'node:path'
 import { manifestV1Schema } from '@proj-airi/plugin-sdk/plugin-host'
 import { safeParse } from 'valibot'
 
-export const pluginManifestFileName = 'plugin.airi.json'
+const pluginManifestFileName = 'plugin.airi.json'
 
 function isManifestV1(value: unknown): value is ManifestV1 {
   return safeParse(manifestV1Schema, value).success
@@ -173,7 +173,7 @@ export async function loadManifestsFrom(
  * Returns:
  * - Stable manifest summary for UI consumption
  */
-export function createPluginSummary(
+function createPluginSummary(
   entry: ManifestEntry,
   config: PluginConfig,
   loaded: Set<string>,

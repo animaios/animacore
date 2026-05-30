@@ -66,7 +66,7 @@ export function isDevtoolsPeer(peer: AuthenticatedPeer) {
  * Returns:
  * - `true` when the peer is authenticated and satisfies all policy constraints
  */
-export function peerMatchesPolicy(peer: AuthenticatedPeer, policy: RoutingPolicy) {
+function peerMatchesPolicy(peer: AuthenticatedPeer, policy: RoutingPolicy) {
   if (!peer.authenticated) {
     return false
   }

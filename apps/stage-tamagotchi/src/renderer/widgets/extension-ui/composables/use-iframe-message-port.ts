@@ -91,7 +91,7 @@ export function toWidgetsIframePostMessageRecord(value: unknown): Record<string,
  * - Reactive iframe load error state
  * - iframe load/error handlers for the host component template
  */
-export function useIframeMessagePort(
+function useIframeMessagePort(
   target: MaybeElementRef,
   options: {
     moduleId: ComputedRef<string | undefined>

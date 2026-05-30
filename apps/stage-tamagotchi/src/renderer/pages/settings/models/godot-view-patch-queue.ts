@@ -50,7 +50,7 @@ function mergeVec3Patch(
  * Returns:
  * - A patch containing the newest value for each touched model and camera field
  */
-export function mergeGodotViewPatch(
+function mergeGodotViewPatch(
   current: StageViewPatch | undefined,
   next: StageViewPatch,
 ): StageViewPatch {

@@ -42,7 +42,7 @@ function evaluateSize(basedOn: number, size: Size) {
  * 9xl 208rem (3328px) @media (width >= 208rem) { ... }
  * 10xl 224rem (3584px) @media (width >= 224rem) { ... }
  */
-export const tailwindBreakpoints = {
+const tailwindBreakpoints = {
   'sm': { min: 640, max: 767 },
   'md': { min: 768, max: 1023 },
   'lg': { min: 1024, max: 1279 },

@@ -14,7 +14,7 @@ import {
  * persist for the window's lifetime, independent of any Vue component's
  * mount/unmount lifecycle.
  */
-export function initializeElectronAuthCallbackBridge() {
+function initializeElectronAuthCallbackBridge() {
   const context = getElectronEventaContext()
 
   context.on(electronAuthCallback, async (event) => {

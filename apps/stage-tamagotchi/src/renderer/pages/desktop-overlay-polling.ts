@@ -119,7 +119,7 @@ export function extractRunStateFromResult(result: McpCallToolResult): Record<str
   return sc as Record<string, unknown>
 }
 
-export function createOverlayPollHeartbeat(state: OverlayState): OverlayPollHeartbeat | undefined {
+function createOverlayPollHeartbeat(state: OverlayState): OverlayPollHeartbeat | undefined {
   if (!state.hasSnapshot || !state.snapshotId)
     return undefined
 

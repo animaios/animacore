@@ -193,7 +193,7 @@ export function createChatHooks(): ChatHookRegistry {
   }
 }
 
-export function createAgentHooks<TContext, TAssistantMessage, TToolCall>(): AgentHookRegistry<TContext, TAssistantMessage, TToolCall> {
+function createAgentHooks<TContext, TAssistantMessage, TToolCall>(): AgentHookRegistry<TContext, TAssistantMessage, TToolCall> {
   const onBeforeMessageComposedHooks: Array<(message: string, context: Omit<TContext, 'composedMessage'>) => Promise<void>> = []
   const onAfterMessageComposedHooks: Array<(message: string, context: TContext) => Promise<void>> = []
   const onBeforeSendHooks: Array<(message: string, context: TContext) => Promise<void>> = []

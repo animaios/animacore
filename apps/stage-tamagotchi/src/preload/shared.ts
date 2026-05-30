@@ -29,7 +29,7 @@ export function expose() {
   }
 }
 
-export function exposeWithCustomAPI<CustomAPI>(customAPI: CustomAPI) {
+function exposeWithCustomAPI<CustomAPI>(customAPI: CustomAPI) {
   expose()
 
   // Use `contextBridge` APIs to expose Electron APIs to

@@ -65,7 +65,7 @@ export function normalizeNullableAnyOf(schema: JsonSchema): JsonSchema {
   return next
 }
 
-export const sparkCommandGuidanceOptionSchema = z.object({
+const sparkCommandGuidanceOptionSchema = z.object({
   label: z.string().describe('Short label for the option.'),
   steps: z.array(z.string()).min(1).describe('Step-by-step actions the target should follow.'),
   rationale: z.union([z.string(), z.null()]).describe('Why this option makes sense.'),
@@ -75,12 +75,12 @@ export const sparkCommandGuidanceOptionSchema = z.object({
   triggers: z.union([z.array(z.string()), z.null()]).describe('Conditions that should trigger this option.'),
 }).strict()
 
-export const sparkCommandPersonaSchema = z.object({
+const sparkCommandPersonaSchema = z.object({
   traits: z.string().describe('Trait name to adjust behavior. For example, "bravery", "cautiousness", "friendliness".'),
   strength: z.enum(['very-high', 'high', 'medium', 'low', 'very-low']),
 }).strict()
 
-export const sparkNotifyCommandGuidanceSchema = z.object({
+const sparkNotifyCommandGuidanceSchema = z.object({
   type: z.enum(['proposal', 'instruction', 'memory-recall']),
   persona: z.union([z.array(sparkCommandPersonaSchema), z.null()]).describe('Optional persona controls for the receiver.'),
   options: z.array(sparkCommandGuidanceOptionSchema),

@@ -40,7 +40,7 @@ const mountedPluginAssetPathPrefix = '/_airi/extensions/'
  * - Reactive loading and error state for module inspection
  * - The resolved module snapshot and normalized iframe configuration values
  */
-export function useExtensionUIForModule(options: {
+function useExtensionUIForModule(options: {
   moduleId: ComputedRef<string | undefined>
   inspectPluginHost: () => Promise<{ modules: PluginHostModuleSummary[] }>
   getPluginAssetBaseUrl: () => Promise<string>

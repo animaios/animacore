@@ -5,9 +5,9 @@ import type { VrmHook, VrmMaterialHookContext } from './hooks'
 
 import { Float32BufferAttribute, Mesh } from 'three'
 
-export const AIRI_OUTLINE_NORMAL_ATTRIBUTE_NAME = 'outlineNormal'
-export const AIRI_OUTLINE_PREPROCESS_VERSION = 1
-export const AIRI_OUTLINE_SHADER_PATCH_VERSION = 1
+const AIRI_OUTLINE_NORMAL_ATTRIBUTE_NAME = 'outlineNormal'
+const AIRI_OUTLINE_PREPROCESS_VERSION = 1
+const AIRI_OUTLINE_SHADER_PATCH_VERSION = 1
 
 const AIRI_OUTLINE_PREPROCESS_USER_DATA_KEY = '__airiOutlinePreprocess'
 const AIRI_OUTLINE_SHADER_PATCH_USER_DATA_KEY = '__airiOutlineShaderPatch'
@@ -461,7 +461,7 @@ function findVrmOutlineMeshTarget({
   )
 }
 
-export function prepareVrmOutlineRuntime(vrm: VRM) {
+function prepareVrmOutlineRuntime(vrm: VRM) {
   const meshTargets: VrmOutlineMeshTarget[] = []
 
   vrm.scene.traverse((object) => {
@@ -481,7 +481,7 @@ export function prepareVrmOutlineRuntime(vrm: VRM) {
   setVrmOutlineRuntimeState(vrm, { meshes: meshTargets })
 }
 
-export function disposeVrmOutlineRuntime(vrm?: VRM) {
+function disposeVrmOutlineRuntime(vrm?: VRM) {
   if (!vrm)
     return
 
