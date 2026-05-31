@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { TooltipArrow, TooltipContent, TooltipProvider, TooltipRoot, TooltipTrigger } from 'reka-ui'
+import { useI18n } from 'vue-i18n'
 
 defineProps<{
   sensorPayload?: string
@@ -8,6 +9,8 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'sparkle-click', fieldId: string): void
 }>()
+
+const { t } = useI18n()
 const heartbeatsEnabled = defineModel<boolean>('heartbeatsEnabled', { required: true })
 const heartbeatsIntervalMinutes = defineModel<number>('heartbeatsIntervalMinutes', { required: true })
 const heartbeatsPrompt = defineModel<string>('heartbeatsPrompt', { required: true })
@@ -158,6 +161,7 @@ const groundingEnabled = defineModel<boolean>('groundingEnabled', { required: tr
                     background: transparent;
                   "
                   class="text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-primary-500 dark:hover:bg-neutral-800 dark:hover:text-primary-400"
+                  :aria-label="t('settings.pages.card.creation.sparkle.optimize_with_ai')"
                   title="Optimize with AI"
                   @click.prevent="emit('sparkle-click', 'heartbeatsPrompt')"
                 >

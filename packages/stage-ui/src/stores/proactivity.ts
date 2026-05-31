@@ -129,6 +129,8 @@ export const useProactivityStore = defineStore('proactivity', () => {
     locTime.value = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false })
 
     if (!isElectron) {
+      // FIX 2.7: Reset isUpdatingSensors so it doesn't get stuck in true state
+      isUpdatingSensors.value = false
       console.timeEnd('[Proactivity] updateSensors')
       return
     }
@@ -503,10 +505,11 @@ export const useProactivityStore = defineStore('proactivity', () => {
             // eslint-disable-next-line no-console
             console.log(`[Proactivity] OS Sensor -> Idle Time: ${idleTime}ms`)
 
-            // If useAsLocalGate is true, abort if user is idle for more than 60 seconds (likely AFK)
-            if (!options?.force && config!.useAsLocalGate && idleTime !== undefined && idleTime > 60000) {
+            // FIX 2.7: If useAsLocalGate is true, abort if user is ACTIVE (idle < 60s).
+            // Heartbeats should fire when user is AFK/idle, not when they're actively using the computer.
+            if (!options?.force && config!.useAsLocalGate && idleTime !== undefined && idleTime < 60000) {
               // eslint-disable-next-line no-console
-              console.log('[Proactivity] Aborted: Local Gate is active and user is idle (> 60s), likely AFK.', {
+              console.log('[Proactivity] Aborted: Local Gate is active and user is active (< 60s idle).', {
                 idleTime,
               })
               return

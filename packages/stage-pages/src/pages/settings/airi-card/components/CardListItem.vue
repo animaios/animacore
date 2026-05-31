@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { CharacterAvatar, CursorFloating } from '@proj-airi/stage-ui/components'
+import { Button } from '@proj-airi/ui'
 import {
   DropdownMenuContent,
   DropdownMenuItem,
@@ -152,25 +153,16 @@ interface Props {
         'relative z-10 flex items-center justify-end px-2 py-1.5 bg-neutral-50/50 dark:bg-neutral-800/30 border-t border-neutral-100 dark:border-neutral-800/50',
       ]"
     >
-      <button
-        :class="[
-          'rounded-lg p-1.5 text-neutral-500 transition-colors dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700/50',
-        ]"
-        title="Edit card"
+      <Button
+        variant="ghost"
+        icon="i-solar:pen-2-bold-duotone"
+        :aria-label="`Edit ${name}`"
         @click.stop="emit('edit')"
-      >
-        <div i-solar:pen-2-bold-duotone :class="['text-sm']" />
-      </button>
+      />
 
       <DropdownMenuRoot>
-        <DropdownMenuTrigger
-          :class="[
-            'rounded-lg p-1.5 text-neutral-500 transition-colors dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700/50',
-          ]"
-          title="Export card"
-          @click.stop
-        >
-          <div i-solar:export-bold-duotone :class="['text-sm']" />
+        <DropdownMenuTrigger as-child>
+          <Button variant="ghost" icon="i-solar:export-bold-duotone" :aria-label="`Export ${name}`" @click.stop />
         </DropdownMenuTrigger>
         <DropdownMenuPortal>
           <DropdownMenuContent
@@ -201,27 +193,21 @@ interface Props {
         </DropdownMenuPortal>
       </DropdownMenuRoot>
 
-      <button
-        :class="['rounded-lg p-1.5 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-700/50']"
+      <Button
+        variant="ghost"
+        :icon="isActive ? 'i-solar:check-circle-bold-duotone' : 'i-solar:play-circle-broken'"
+        :aria-label="isActive ? `Active card: ${name}` : `Activate ${name}`"
         :disabled="isActive"
         @click.stop="emit('activate')"
-      >
-        <div
-          :class="[
-            isActive
-              ? 'i-solar:check-circle-bold-duotone text-primary-500 dark:text-primary-400'
-              : 'i-solar:play-circle-broken text-neutral-500 dark:text-neutral-400',
-          ]"
-        />
-      </button>
+      />
 
-      <button
+      <Button
         v-if="id !== 'default'"
-        :class="['rounded-lg p-1.5 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-700/50']"
+        variant="ghost"
+        icon="i-solar:trash-bin-trash-linear"
+        :aria-label="`Delete ${name}`"
         @click.stop="emit('delete')"
-      >
-        <div i-solar:trash-bin-trash-linear :class="['text-neutral-500 dark:text-neutral-400']" />
-      </button>
+      />
     </div>
   </CursorFloating>
 </template>

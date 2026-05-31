@@ -90,6 +90,7 @@ export const useModelStore = defineStore('modelStore', () => {
   }
 
   watch(data, (event) => {
+    if (!event) return
     if (event.type === 'should-update-view') {
       shouldUpdateViewHooks.value.forEach((hook) => hook(event.reason))
     }
@@ -131,7 +132,7 @@ export const useModelStore = defineStore('modelStore', () => {
     modelRotationY.value = 0
 
     cameraFOV.value = 40
-    cameraPosition.value = { x: 0, y: 0, z: 0 }
+    cameraPosition.value = { x: 0, y: 0, z: -1 }
     cameraDistance.value = 0
 
     lookAtTarget.value = { x: 0, y: 0, z: 0 }

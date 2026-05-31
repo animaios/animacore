@@ -73,6 +73,16 @@ export const useLive2d = defineStore('live2d', () => {
   )
 
   function resetState() {
+    // NOTICE: Clear all active emotion timers before resetting state.
+    // Pending setTimeout callbacks from triggerEmotion() can write stale
+    // parameter values after state has been reset, causing visual glitches.
+    for (const fileName of Object.keys(activeEmotionTimers.value)) {
+      clearTimeout(activeEmotionTimers.value[fileName])
+      activeEmotionResets.value[fileName]?.()
+    }
+    activeEmotionTimers.value = {}
+    activeEmotionResets.value = {}
+
     position.reset()
     currentMotion.reset()
     availableMotions.value = []

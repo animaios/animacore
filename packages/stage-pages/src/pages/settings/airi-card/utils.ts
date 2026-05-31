@@ -92,23 +92,75 @@ export function injectPngTextChunk(pngBytes: Uint8Array, keyword: string, text: 
 
 /**
  * Decodes a base64 string to UTF-8.
+ *
+ * Uses TextDecoder with Uint8Array for modern, spec-compliant binary-safe decoding
+ * instead of deprecated escape/unescape functions.
  */
 export function base64ToUtf8(input: string): string {
-  return decodeURIComponent(escape(atob(input)))
+  const binary = atob(input)
+  const bytes = new Uint8Array(binary.length)
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i)
+  }
+  return new TextDecoder().decode(bytes)
 }
 
 /**
  * Encodes a UTF-8 string to base64.
+ *
+ * Uses TextEncoder with Uint8Array for modern, spec-compliant binary-safe encoding
+ * instead of deprecated escape/unescape functions.
  */
 export function utf8ToBase64(input: string): string {
-  return btoa(unescape(encodeURIComponent(input)))
+  const bytes = new TextEncoder().encode(input)
+  const binary = Array.from(bytes, (byte) => String.fromCodePoint(byte)).join('')
+  return btoa(binary)
+}
+
+/**
+ * Parsed PNG chara payload with core card fields and optional extensions.
+ */
+export interface ParsedCharaPayload {
+  [key: string]: unknown
+  spec?: string
+  spec_version?: string
+  data?: {
+    name?: string
+    description?: string
+    personality?: string
+    scenario?: string
+    first_mes?: string
+    mes_example?: string
+    creator_notes?: string
+    system_prompt?: string
+    post_history_instructions?: string
+    alternate_greetings?: string[]
+    tags?: string[]
+    creator?: string
+    character_version?: string
+    extensions?: Record<string, unknown>
+  }
+  name?: string
+  description?: string
+  personality?: string
+  scenario?: string
+  first_mes?: string
+  mes_example?: string
+  creator_notes?: string
+  system_prompt?: string
+  post_history_instructions?: string
+  alternate_greetings?: string[]
+  tags?: string[]
+  creator?: string
+  character_version?: string
+  extensions?: Record<string, unknown>
 }
 
 /**
  * Extracts the `chara` text chunk from a PNG ArrayBuffer.
  * Parses the base64-encoded JSON payload as a Card or ccv3.CharacterCardV3.
  */
-export function parsePngCharaPayload(buffer: ArrayBuffer): Record<string, any> {
+export function parsePngCharaPayload(buffer: ArrayBuffer): ParsedCharaPayload {
   const bytes = new Uint8Array(buffer)
 
   for (let offset = 8; offset < bytes.length - 8; ) {
@@ -128,7 +180,7 @@ export function parsePngCharaPayload(buffer: ArrayBuffer): Record<string, any> {
         if (keyword === 'chara') {
           const text = new TextDecoder().decode(data.slice(separator + 1))
           const decoded = JSON.parse(base64ToUtf8(text))
-          return decoded
+          return decoded as ParsedCharaPayload
         }
       }
     }
@@ -140,14 +192,39 @@ export function parsePngCharaPayload(buffer: ArrayBuffer): Record<string, any> {
 }
 
 /**
+ * Built chara_card_v2 export payload.
+ */
+export interface BuiltCharaCardV2 {
+  spec: 'chara_card_v2'
+  spec_version: '2.0'
+  data: {
+    name: string
+    description: string
+    personality: string
+    scenario: string
+    first_mes: string
+    mes_example: string
+    creator_notes: string
+    system_prompt: string
+    post_history_instructions: string
+    alternate_greetings: string[]
+    tags: string[]
+    creator: string
+    character_version: string
+    extensions: Record<string, unknown>
+    x_airi_probe: string
+  }
+}
+
+/**
  * Maps an AIRI card to chara_card_v2 format for SillyTavern compatibility.
  * AIRI extensions are nested under `data.extensions.airi`.
  */
-export function buildCharaCardV2(card: AiriCard) {
-  const exportedExtensions = {
-    ...card.extensions,
+export function buildCharaCardV2(card: AiriCard): BuiltCharaCardV2 {
+  const exportedExtensions: Record<string, unknown> = {
+    ...(card.extensions as Record<string, unknown> | undefined),
     airi: {
-      ...card.extensions?.airi,
+      ...((card.extensions as Record<string, unknown> | undefined)?.airi as Record<string, unknown> | undefined),
       sillytavernCompatibilityProbe: {
         exportedBy: 'Project AIRI',
         probe: 'extensions-airi-ok',

@@ -495,6 +495,10 @@ async function getCardWithExportedBackground(cardId: string): Promise<AiriCard |
       } as AiriCard)
     }
     reader.onerror = () => resolve(card)
+    if (!exportBackground?.blob) {
+      resolve(card)
+      return
+    }
     reader.readAsDataURL(exportBackground.blob)
   })
 }
@@ -504,6 +508,9 @@ async function composeCardExportPng(previewImage: string): Promise<Uint8Array> {
   const loadImageElement = (src: string): Promise<HTMLImageElement> => {
     return new Promise((resolve, reject) => {
       const img = new Image()
+      if (!src.startsWith('data:')) {
+        img.crossOrigin = 'anonymous'
+      }
       img.onload = () => resolve(img)
       img.onerror = reject
       img.src = src
@@ -677,7 +684,7 @@ function getDisplayModelId(id: string) {
       }"
     >
       <!-- Upload card -->
-      <InputFile v-model="inputFiles" accept="*.json,*.png" class="h-[280px]">
+      <InputFile v-model="inputFiles" accept=".json,.png" class="h-[280px]">
         <template #default="{ isDragging }">
           <template v-if="!isDragging">
             <div flex flex-col items-center>

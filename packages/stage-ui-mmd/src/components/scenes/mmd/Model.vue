@@ -532,9 +532,8 @@ const isComponentMounted = ref(false)
 
 onMounted(() => {
   isComponentMounted.value = true
-  if (modelSrc.value && !modelLoaded.value) {
-    void loadModel(modelSrc.value)
-  }
+  // NOTE: loadModel is already triggered by the immediate watcher on modelSrc,
+  // so we don't need to call it again here to avoid redundant initial loads.
 })
 
 onUnmounted(() => {

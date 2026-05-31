@@ -201,6 +201,7 @@ watch([generationContextWidth, generationProvider, generationModel], () => {
                 background: transparent;
               "
               class="text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-primary-500 dark:hover:bg-neutral-800 dark:hover:text-primary-400"
+              :aria-label="t('settings.pages.card.creation.sparkle.optimize_with_ai')"
               title="Optimize with AI"
               @click.prevent="emit('sparkle-click', 'postHistoryInstructions')"
             >

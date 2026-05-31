@@ -2,6 +2,7 @@
 import type { SpeechCapabilitiesInfo } from '@proj-airi/stage-ui/stores/providers'
 
 import { FieldInput } from '@proj-airi/ui'
+import { useI18n } from 'vue-i18n'
 
 defineProps<{
   actingModelExpressionOptions: string[]
@@ -20,6 +21,8 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'sparkle-click', fieldId: string): void
 }>()
+
+const { t } = useI18n()
 
 const selectedActingModelExpressionPrompt = defineModel<string>('selectedActingModelExpressionPrompt', {
   required: true,
@@ -110,6 +113,7 @@ function toggleIdleAnimation(name: string) {
                   background: transparent;
                 "
                 class="text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-primary-500 dark:hover:bg-neutral-800 dark:hover:text-primary-400"
+                :aria-label="t('settings.pages.card.creation.sparkle.optimize_with_ai')"
                 title="Optimize with AI"
                 @click.prevent="emit('sparkle-click', 'actingModelExpression')"
               >
@@ -183,6 +187,7 @@ function toggleIdleAnimation(name: string) {
                   background: transparent;
                 "
                 class="text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-primary-500 dark:hover:bg-neutral-800 dark:hover:text-primary-400"
+                :aria-label="t('settings.pages.card.creation.sparkle.optimize_with_ai')"
                 title="Optimize with AI"
                 @click.prevent="emit('sparkle-click', 'actingSpeechExpression')"
               >

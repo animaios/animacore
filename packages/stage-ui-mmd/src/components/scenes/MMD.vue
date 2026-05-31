@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DirectionalLight } from 'three'
+import { DirectionalLight } from 'three'
 
 import { useMmd } from '@proj-airi/stage-ui-mmd/stores/mmd'
 import { Screen } from '@proj-airi/ui'

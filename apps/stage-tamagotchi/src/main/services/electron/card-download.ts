@@ -4,6 +4,36 @@ import { defineInvokeHandler } from '@moeru/eventa'
 import { app, session } from 'electron'
 import { charaCardDownloaded } from '../../../shared/eventa'
 
+/**
+ * NOTICE:
+ * Sanitizes a remote filename to prevent path traversal attacks.
+ * A malicious server could send a filename like "../../etc/passwd" or
+ * "/absolute/path" which would escape the intended temp directory when
+ * used in path.join(). This function strips directory components and
+ * leading dots to ensure the result is a safe basename.
+ *
+ * Before:
+ * - "../../etc/passwd"
+ * - "/absolute/path/file.json"
+ * - "...hidden"
+ *
+ * After:
+ * - "passwd"
+ * - "file.json"
+ * - "hidden"
+ */
+function sanitizeFilename(filename: string): string {
+  // Remove any directory path components
+  const basename = filename.replace(/^.*[\\/]/, '')
+  // Remove leading dots (path traversal)
+  const sanitized = basename.replace(/^\.+/, '')
+  // If empty after sanitization, use a default
+  if (!sanitized || sanitized.length === 0) {
+    return 'downloaded-card.json'
+  }
+  return sanitized
+}
+
 export function setupCardDownloadInterception(params: { context: ReturnType<typeof createContext>['context'] }) {
   const { context } = params
 
@@ -23,7 +53,8 @@ export function setupCardDownloadInterception(params: { context: ReturnType<type
       const path = await import('node:path')
 
       const tempDir = app.getPath('temp')
-      const tempFilePath = path.join(tempDir, `airi-card-${Date.now()}-${filename}`)
+      const safeFilename = sanitizeFilename(filename)
+      const tempFilePath = path.join(tempDir, `airi-card-${Date.now()}-${safeFilename}`)
       item.setSavePath(tempFilePath)
 
       item.once('done', async (_e, state) => {

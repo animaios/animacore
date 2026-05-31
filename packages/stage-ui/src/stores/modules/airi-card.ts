@@ -221,9 +221,13 @@ export interface AiriCard extends Card {
  * Converts the Map to/from a JSON-serializable array of entries.
  */
 export const mapEntriesSerializer = {
-  read: (v: string) => {
-    const data = JSON.parse(v)
-    return new Map(data) as Map<string, AiriCard>
+  read: (value: string): Map<string, AiriCard> => {
+    try {
+      const entries = JSON.parse(value) as [string, AiriCard][]
+      return new Map(entries)
+    } catch {
+      return new Map()
+    }
   },
   write: (v: Map<string, AiriCard>) => JSON.stringify(Array.from(v.entries())),
 }
@@ -439,8 +443,8 @@ export function resolveAiriExtension(
           foldedBackgroundId = concept.manifestation.backgroundId
         }
 
-        if ((concept as any).manifestation?.expressions) {
-          Object.assign(foldedExpressions, (concept as any).manifestation.expressions)
+        if ((concept as any).manifestation?.active_expressions) {
+          Object.assign(foldedExpressions, (concept as any).manifestation.active_expressions)
         }
       }
 
@@ -452,6 +456,10 @@ export function resolveAiriExtension(
     })(),
     artistry: {
       ...existingExtension?.artistry,
+      // FIX 2.4: Migrate legacy artistry from modules.artistry to top-level
+      ...(!existingExtension?.artistry && (existingExtension?.modules as any)?.artistry
+        ? (existingExtension.modules as any).artistry
+        : {}),
       widgetInstruction: existingExtension?.artistry?.widgetInstruction ?? defaultArtistry.widgetInstruction,
       spawnMode: existingExtension?.artistry?.spawnMode ?? 'bg_widget',
       autonomousEnabled: existingExtension?.artistry?.autonomousEnabled ?? false,
@@ -776,7 +784,11 @@ export const useAiriCardStore = defineStore('airi-card', () => {
    * Activates a card by ID, syncing its state to all stores.
    */
   async function activateCard(id: string, force = false) {
-    isModelSyncPrevented.value = false
+    // FIX 2.6: Only reset isModelSyncPrevented on first activation or explicit force,
+    // not on every card change, to preserve user's opt-out choice.
+    if (force) {
+      isModelSyncPrevented.value = false
+    }
     activeCardId.value = id
     await syncCardState(cards.value.get(id), force)
   }
@@ -844,8 +856,11 @@ export const useAiriCardStore = defineStore('airi-card', () => {
     }
 
     // Branch: Native AiriCard / Legacy Card (spread with overrides)
+    // FIX 2.1: Spread cardData FIRST, then apply normalized overrides
+    // so that sanitized defaults take precedence over raw spread values.
     const cardData = card as any
     return {
+      ...cardData,
       name: cardData.name || '',
       nickname: cardData.nickname || '',
       version: normalizeVersion(cardData.version),
@@ -856,7 +871,6 @@ export const useAiriCardStore = defineStore('airi-card', () => {
       messageExample: cardData.messageExample || [],
       systemPrompt: normalizeRequiredText(cardData.systemPrompt, defaultSystemPrompt),
       postHistoryInstructions: normalizeRequiredText(cardData.postHistoryInstructions, defaultPostHistoryInstructions),
-      ...cardData,
       extensions: {
         ...cardData.extensions,
         airi: stripEmbeddedBackgroundData(
@@ -1069,11 +1083,16 @@ export function buildSystemPrompt(card: AiriCard | undefined) {
     card.greetings && card.greetings.length > 0
       ? `Greetings / Dialog Starters:\n${card.greetings.map((g) => `- ${g}`).join('\n')}`
       : '',
+    // FIX 2.2: Include postHistoryInstructions in the prompt output
+    card.postHistoryInstructions || '',
   ].filter(Boolean)
 
   const acting = card.extensions?.airi?.acting
   if (acting) {
-    components.push(acting.modelExpressionPrompt, acting.speechExpressionPrompt, acting.speechMannerismPrompt)
+    // FIX 2.2: Defensive checks — only append non-empty acting properties
+    if (acting.modelExpressionPrompt) components.push(acting.modelExpressionPrompt)
+    if (acting.speechExpressionPrompt) components.push(acting.speechExpressionPrompt)
+    if (acting.speechMannerismPrompt) components.push(acting.speechMannerismPrompt)
   }
 
   const artistry = card.extensions?.airi?.artistry

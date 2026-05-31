@@ -63,7 +63,7 @@ const { t } = useI18n()
           v-model="selectedConsciousnessModel"
           :options="consciousnessModelOptions"
           :placeholder="defaultConsciousnessModelPlaceholder"
-          :disabled="!selectedConsciousnessProvider && !consciousnessProviderActive"
+          :disabled="!selectedConsciousnessProvider || !consciousnessProviderActive"
           class="w-full"
         />
       </div>
@@ -94,7 +94,7 @@ const { t } = useI18n()
           v-model="selectedSpeechModel"
           :options="speechModelOptions"
           :placeholder="defaultSpeechModelPlaceholder"
-          :disabled="!selectedSpeechProvider && !speechProviderActive"
+          :disabled="!selectedSpeechProvider || !speechProviderActive"
           class="w-full"
         />
       </div>
@@ -110,7 +110,7 @@ const { t } = useI18n()
           v-model="selectedSpeechVoiceId"
           :options="speechVoiceOptions"
           :placeholder="defaultSpeechVoiceIdPlaceholder"
-          :disabled="!selectedSpeechProvider && !speechProviderActive"
+          :disabled="!selectedSpeechProvider || !speechProviderActive"
           class="w-full"
         />
       </div>

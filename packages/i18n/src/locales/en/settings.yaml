@@ -351,6 +351,10 @@ pages:
         greetings: How your character should say "hello" ?
         systemprompt: Explain here to the AI LLM how it should answer when prompted.
         posthistoryinstructions: Place here anything the AI LLM should read after the messages history.
+      sparkle:
+        optimize_with_ai: Optimize with AI
+        generate_with_ai: Generate with AI
+
         version: Card version, you should increase this if you are making changes from a previous card.
         consciousness_model: Select the consciousness model (AI model) for this character.
         speech_model: Select the speech synthesis model and voice for this character.

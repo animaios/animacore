@@ -28,6 +28,8 @@ import { useProactivityStore } from '@proj-airi/stage-ui/stores/proactivity'
 import { useProvidersStore } from '@proj-airi/stage-ui/stores/providers'
 import { useSettingsStageModel } from '@proj-airi/stage-ui/stores/settings/stage-model'
 import { Button } from '@proj-airi/ui'
+import { errorMessageFrom } from '@moeru/std'
+import { toast } from 'vue-sonner'
 import { storeToRefs } from 'pinia'
 import { DialogContent, DialogOverlay, DialogPortal, DialogRoot, DialogTitle } from 'reka-ui'
 import { computed, onMounted, ref, toRaw, watch } from 'vue'
@@ -777,16 +779,21 @@ async function saveCard(card: Card): Promise<boolean> {
     options: artistryConfig,
   }
 
-  if (isEditMode.value && props.cardId) {
-    // Edit mode: update existing card
-    cardStore.updateCard(props.cardId, cardWithModules)
-  } else {
-    // Create mode: add new card
-    await cardStore.addCard(cardWithModules)
-  }
+  try {
+    if (isEditMode.value && props.cardId) {
+      // Edit mode: update existing card
+      cardStore.updateCard(props.cardId, cardWithModules)
+    } else {
+      // Create mode: add new card
+      await cardStore.addCard(cardWithModules)
+    }
 
-  modelValue.value = false // Close this
-  return true
+    modelValue.value = false // Close this
+    return true
+  } catch (error) {
+    toast.error(errorMessageFrom(error) ?? 'Failed to save card.')
+    return false
+  }
 }
 
 // Cards data holders :
