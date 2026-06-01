@@ -12,9 +12,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'update:selectedOutfitId', id: string): void
+  (e: 'update:selectedOutfitId' | 'delete-outfit', id: string): void
   (e: 'add-outfit'): void
-  (e: 'delete-outfit', id: string): void
   (e: 'update:outfits', outfits: AiriOutfit[]): void
 }>()
 
