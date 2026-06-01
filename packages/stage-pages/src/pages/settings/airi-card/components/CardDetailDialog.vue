@@ -80,18 +80,6 @@ const moduleSettings = computed(() => {
   }
 })
 
-// Get character settings
-const characterSettings = computed(() => {
-  if (!selectedCard.value) return {}
-
-  return {
-    personality: selectedCard.value.personality,
-    scenario: selectedCard.value.scenario,
-    systemPrompt: selectedCard.value.systemPrompt,
-    postHistoryInstructions: selectedCard.value.postHistoryInstructions,
-  }
-})
-
 // Get acting settings
 const actingSettings = computed(() => {
   if (!selectedCard.value || !selectedCard.value.extensions?.airi?.acting) {
@@ -1151,6 +1139,12 @@ function getModuleDisplayValue(value: string | undefined, defaultValue: string |
                     </div>
                     <div v-if="proactivitySettings.heartbeatsPrompt" class="sm:col-span-2 flex flex-col gap-1">
                       <span class="text-neutral-500 dark:text-neutral-400">Prompt:</span>
+                      <!--
+                        NOTICE: v-html is used here to render highlighted tag markup ({{tag}} patterns).
+                        The content is sanitized via DOMPurify.sanitize() inside highlightTagToHtml(),
+                        which strips any HTML entities before injecting highlight span markup.
+                        Source data is imported character card content, not free-form user input.
+                      -->
                       <div
                         class="max-h-24 overflow-auto whitespace-pre-line rounded bg-neutral-50 p-2 text-xs text-neutral-700 dark:bg-neutral-900/50 dark:text-neutral-300"
                         v-html="highlightTagToHtml(proactivitySettings.heartbeatsPrompt)"

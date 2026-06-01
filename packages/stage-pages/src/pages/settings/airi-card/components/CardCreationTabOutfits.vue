@@ -1,45 +1,60 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { Select, Input, Button, Toggle, Textarea } from '@proj-airi/ui/components/form'
-import { useI18n } from 'vue-i18n'
+import type { AiriOutfit } from '@proj-airi/stage-ui/stores/modules/airi-card'
 
-interface Outfit {
-  id: string
-  name: string
-  type: 'base' | 'overlay'
-  expressions: string[]
-  backgroundId: string
-  expressionCount: number
-}
+import { Select, Input } from '@proj-airi/ui/components/form'
+import { Button } from '@proj-airi/ui'
+import { useI18n } from 'vue-i18n'
+import { ref, computed, watch } from 'vue'
 
 const props = defineProps<{
-  outfits: Outfit[]
+  outfits: AiriOutfit[]
   selectedOutfitId?: string
 }>()
 
 const emit = defineEmits<{
   (e: 'update:selectedOutfitId', id: string): void
-  (e: 'addOutfit'): void
-  (e: 'deleteOutfit', id: string): void
+  (e: 'add-outfit'): void
+  (e: 'delete-outfit', id: string): void
+  (e: 'update:outfits', outfits: AiriOutfit[]): void
 }>()
 
 const { t } = useI18n()
+
 const newOutfit = ref({
   name: '',
-  type: 'base',
-  expressions: [''],
+  type: 'base' as string,
+  expressions: [''] as string[],
   backgroundId: 'none',
 })
 
-const selectedOutfit = computed<Outfit | undefined>({
+const selectedOutfit = computed<AiriOutfit | undefined>({
   get: () => props.outfits.find((outfit) => outfit.id === props.selectedOutfitId),
   set: (outfit) => {
     emit('update:selectedOutfitId', outfit?.id || '')
   },
 })
 
+// Hydrate edit form state when selection changes
+watch(
+  () => props.selectedOutfitId,
+  (newId) => {
+    const outfit = props.outfits.find((o) => o.id === newId)
+    if (outfit) {
+      const expressions = Array.isArray(outfit.expressions)
+        ? [...outfit.expressions]
+        : Object.keys(outfit.expressions || {})
+      newOutfit.value = {
+        name: outfit.name,
+        type: outfit.type,
+        expressions: expressions.length > 0 ? expressions : [''],
+        backgroundId: outfit.backgroundId || 'none',
+      }
+    }
+  },
+)
+
 const addNewOutfit = () => {
-  emit('addOutfit')
+  emit('add-outfit')
   newOutfit.value = {
     name: '',
     type: 'base',
@@ -49,17 +64,34 @@ const addNewOutfit = () => {
 }
 
 const deleteOutfit = (id: string) => {
-  emit('deleteOutfit', id)
+  emit('delete-outfit', id)
+}
+
+const stringArrayToRecord = (arr: string[]): Record<string, number> => {
+  const result: Record<string, number> = {}
+  arr.filter(Boolean).forEach((key, idx) => {
+    result[key] = idx + 1
+  })
+  return result
 }
 
 const updateOutfit = () => {
-  if (selectedOutfit.value) {
-    const updatedOutfits = props.outfits.map((outfit) =>
-      outfit.id === selectedOutfit.value.id ? { ...selectedOutfit.value, ...newOutfit.value } : outfit,
-    )
-    // Emit updated outfits to parent
-    emit('update:outfits', updatedOutfits)
+  const current = selectedOutfit.value
+  if (!current) {
+    return
   }
+  const updatedOutfits = props.outfits.map((outfit) =>
+    outfit.id === current.id
+      ? {
+          ...current,
+          name: newOutfit.value.name,
+          type: newOutfit.value.type,
+          expressions: stringArrayToRecord(newOutfit.value.expressions),
+          backgroundId: newOutfit.value.backgroundId,
+        }
+      : outfit,
+  )
+  emit('update:outfits', updatedOutfits)
 }
 </script>
 
@@ -113,7 +145,7 @@ const updateOutfit = () => {
           </label>
           <div class="flex flex-col gap-2">
             <Input
-              v-for="(expression, index) in newOutfit.expressions"
+              v-for="(_, index) in newOutfit.expressions"
               :key="index"
               v-model="newOutfit.expressions[index]"
               class="w-full"
@@ -164,7 +196,11 @@ const updateOutfit = () => {
                 {{ outfit.name }} ({{ outfit.type }})
               </div>
               <div class="text-sm text-neutral-500 dark:text-neutral-400">
-                {{ t('settings.pages.card.creation.expressions_count', { count: outfit.expressionCount }) }}
+                {{
+                  t('settings.pages.card.creation.expressions_count', {
+                    count: Object.keys(outfit.expressions || {}).length,
+                  })
+                }}
               </div>
             </div>
             <div

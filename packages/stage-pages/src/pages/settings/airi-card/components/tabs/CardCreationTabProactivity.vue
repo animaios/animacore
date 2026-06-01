@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { TooltipArrow, TooltipContent, TooltipProvider, TooltipRoot, TooltipTrigger } from 'reka-ui'
+import { Checkbox, Input } from '@proj-airi/ui/components/form'
 import { useI18n } from 'vue-i18n'
 
 defineProps<{
@@ -39,12 +40,7 @@ const shortTermMemoryImportanceThreshold = defineModel<number>('shortTermMemoryI
     <div class="input-list ml-auto mr-auto w-90% flex flex-col flex-wrap justify-center gap-6">
       <div class="flex flex-col gap-4">
         <div class="flex items-center gap-2">
-          <input
-            id="heartbeats-enabled"
-            v-model="heartbeatsEnabled"
-            type="checkbox"
-            class="h-4 w-4 border-gray-300 rounded text-primary-600"
-          />
+          <Checkbox id="heartbeats-enabled" v-model="heartbeatsEnabled" />
           <label for="heartbeats-enabled" class="font-medium">Enable Proactive Heartbeats</label>
         </div>
 
@@ -54,38 +50,19 @@ const shortTermMemoryImportanceThreshold = defineModel<number>('shortTermMemoryI
         >
           <div class="flex flex-col gap-2">
             <label class="text-sm text-neutral-700 font-medium dark:text-neutral-300">Interval (Minutes)</label>
-            <input
-              v-model="heartbeatsIntervalMinutes"
-              type="number"
-              min="1"
-              max="1440"
-              class="border border-neutral-200 rounded-lg bg-transparent px-3 py-2 dark:border-neutral-700"
-            />
+            <Input v-model="heartbeatsIntervalMinutes" type="number" min="1" max="1440" />
             <span class="text-xs text-neutral-500">How often to tick the heartbeat polling.</span>
           </div>
 
           <div class="flex flex-col gap-2">
             <label class="text-sm text-neutral-700 font-medium dark:text-neutral-300">Schedule Options</label>
             <div class="flex items-center gap-2">
-              <input
-                v-model="heartbeatsScheduleStart"
-                type="time"
-                class="flex-1 border border-neutral-200 rounded-lg bg-transparent px-2 py-1 dark:border-neutral-700"
-              />
+              <Input v-model="heartbeatsScheduleStart" type="time" class="flex-1" />
               <span>to</span>
-              <input
-                v-model="heartbeatsScheduleEnd"
-                type="time"
-                class="flex-1 border border-neutral-200 rounded-lg bg-transparent px-2 py-1 dark:border-neutral-700"
-              />
+              <Input v-model="heartbeatsScheduleEnd" type="time" class="flex-1" />
             </div>
             <div class="mt-1 flex items-center gap-2">
-              <input
-                id="heartbeats-respectSchedule"
-                v-model="heartbeatsRespectSchedule"
-                type="checkbox"
-                class="h-4 w-4 border-gray-300 rounded text-primary-600"
-              />
+              <Checkbox id="heartbeats-respectSchedule" v-model="heartbeatsRespectSchedule" />
               <label for="heartbeats-respectSchedule" class="text-xs text-neutral-500">
                 Only trigger heartbeats between these hours.
               </label>
@@ -93,7 +70,7 @@ const shortTermMemoryImportanceThreshold = defineModel<number>('shortTermMemoryI
           </div>
 
           <div class="col-span-1 mt-2 flex items-center gap-2 sm:col-span-2">
-            <input id="heartbeats-localGate" v-model="heartbeatsUseAsLocalGate" type="checkbox" class="h-4 w-4" />
+            <Checkbox id="heartbeats-localGate" v-model="heartbeatsUseAsLocalGate" />
             <label for="heartbeats-localGate" class="text-sm text-neutral-700 font-medium dark:text-neutral-300">
               Require Keyboard/Mouse Inactivity
             </label>
@@ -103,12 +80,7 @@ const shortTermMemoryImportanceThreshold = defineModel<number>('shortTermMemoryI
           </span>
 
           <div class="col-span-1 mt-2 flex items-center gap-2 sm:col-span-2">
-            <input
-              id="dream-state-enabled"
-              v-model="dreamStateEnabled"
-              type="checkbox"
-              class="h-4 w-4 border-gray-300 rounded text-primary-600"
-            />
+            <Checkbox id="dream-state-enabled" v-model="dreamStateEnabled" />
             <label for="dream-state-enabled" class="text-sm text-neutral-700 font-medium dark:text-neutral-300">
               Enable Dream State
             </label>
@@ -118,12 +90,7 @@ const shortTermMemoryImportanceThreshold = defineModel<number>('shortTermMemoryI
           </span>
 
           <div class="col-span-1 mt-2 flex items-center gap-2 sm:col-span-2">
-            <input
-              id="dream-state-afk"
-              v-model="dreamStateStrictAfkGating"
-              type="checkbox"
-              class="h-4 w-4 border-gray-300 rounded text-primary-600"
-            />
+            <Checkbox id="dream-state-afk" v-model="dreamStateStrictAfkGating" />
             <label for="dream-state-afk" class="text-sm text-neutral-700 font-medium dark:text-neutral-300">
               Strict AFK Gating (Dream State)
             </label>
@@ -183,12 +150,7 @@ const shortTermMemoryImportanceThreshold = defineModel<number>('shortTermMemoryI
 
       <div class="flex flex-col gap-1 border-l-2 border-neutral-100 pl-4 dark:border-neutral-700">
         <div class="flex items-center gap-2">
-          <input
-            id="grounding-enabled"
-            v-model="groundingEnabled"
-            type="checkbox"
-            class="h-4 w-4 border-gray-300 rounded text-primary-600"
-          />
+          <Checkbox id="grounding-enabled" v-model="groundingEnabled" />
           <label for="grounding-enabled" class="text-sm text-neutral-700 font-semibold dark:text-neutral-300">
             Attach sensor data with each message
           </label>
@@ -201,7 +163,7 @@ const shortTermMemoryImportanceThreshold = defineModel<number>('shortTermMemoryI
       <!-- Situational Awareness / Rich Context -->
       <div class="flex flex-col gap-2 border-l-2 border-neutral-100 pl-4 dark:border-neutral-700">
         <div class="flex items-center gap-2">
-          <input id="heartbeats-injectContext" v-model="heartbeatsInjectIntoPrompt" type="checkbox" class="h-4 w-4" />
+          <Checkbox id="heartbeats-injectContext" v-model="heartbeatsInjectIntoPrompt" />
           <label
             for="heartbeats-injectContext"
             class="group relative flex items-center gap-1 text-sm font-semibold dark:text-neutral-200"
@@ -233,15 +195,15 @@ const shortTermMemoryImportanceThreshold = defineModel<number>('shortTermMemoryI
 
         <div v-if="heartbeatsInjectIntoPrompt" class="grid grid-cols-1 ml-6 mt-2 gap-2 sm:grid-cols-3">
           <div class="flex items-center gap-2">
-            <input id="ctx-window" v-model="heartbeatsContextWindowHistory" type="checkbox" class="h-3.5 w-3.5" />
+            <Checkbox id="ctx-window" v-model="heartbeatsContextWindowHistory" />
             <label for="ctx-window" class="text-xs text-neutral-600 dark:text-neutral-400">Window History</label>
           </div>
           <div class="flex items-center gap-2">
-            <input id="ctx-load" v-model="heartbeatsContextSystemLoad" type="checkbox" class="h-3.5 w-3.5" />
+            <Checkbox id="ctx-load" v-model="heartbeatsContextSystemLoad" />
             <label for="ctx-load" class="text-xs text-neutral-600 dark:text-neutral-400">System Load</label>
           </div>
           <div class="flex items-center gap-2">
-            <input id="ctx-metrics" v-model="heartbeatsContextUsageMetrics" type="checkbox" class="h-3.5 w-3.5" />
+            <Checkbox id="ctx-metrics" v-model="heartbeatsContextUsageMetrics" />
             <label for="ctx-metrics" class="text-xs text-neutral-600 dark:text-neutral-400">Usage Metrics</label>
           </div>
         </div>
@@ -250,12 +212,7 @@ const shortTermMemoryImportanceThreshold = defineModel<number>('shortTermMemoryI
       <!-- Short-Term Memory Configuration -->
       <div class="flex flex-col gap-2 border-l-2 border-neutral-100 pl-4 dark:border-neutral-700">
         <div class="flex items-center gap-2">
-          <input
-            id="short-term-memory-enabled"
-            v-model="shortTermMemoryEnabled"
-            type="checkbox"
-            class="h-4 w-4 border-gray-300 rounded text-primary-600"
-          />
+          <Checkbox id="short-term-memory-enabled" v-model="shortTermMemoryEnabled" />
           <label for="short-term-memory-enabled" class="text-sm text-neutral-700 font-semibold dark:text-neutral-300">
             Enable Short-Term Memory
           </label>
@@ -270,38 +227,19 @@ const shortTermMemoryImportanceThreshold = defineModel<number>('shortTermMemoryI
         >
           <div class="flex flex-col gap-2">
             <label class="text-sm text-neutral-700 font-medium dark:text-neutral-300">Max Entries</label>
-            <input
-              v-model.number="shortTermMemoryMaxEntries"
-              type="number"
-              min="1"
-              max="1000"
-              class="border border-neutral-200 rounded-lg bg-transparent px-3 py-2 dark:border-neutral-700"
-            />
+            <Input v-model="shortTermMemoryMaxEntries" type="number" min="1" max="1000" />
             <span class="text-xs text-neutral-500">Maximum number of entries to retain in short-term memory.</span>
           </div>
 
           <div class="flex flex-col gap-2">
             <label class="text-sm text-neutral-700 font-medium dark:text-neutral-300">Retention (Minutes)</label>
-            <input
-              v-model.number="shortTermMemoryRetentionMinutes"
-              type="number"
-              min="1"
-              max="10080"
-              class="border border-neutral-200 rounded-lg bg-transparent px-3 py-2 dark:border-neutral-700"
-            />
+            <Input v-model="shortTermMemoryRetentionMinutes" type="number" min="1" max="10080" />
             <span class="text-xs text-neutral-500">How long entries persist before expiring.</span>
           </div>
 
           <div class="flex flex-col gap-2">
             <label class="text-sm text-neutral-700 font-medium dark:text-neutral-300">Importance Threshold</label>
-            <input
-              v-model.number="shortTermMemoryImportanceThreshold"
-              type="number"
-              min="0"
-              max="1"
-              step="0.1"
-              class="border border-neutral-200 rounded-lg bg-transparent px-3 py-2 dark:border-neutral-700"
-            />
+            <Input v-model="shortTermMemoryImportanceThreshold" type="number" min="0" max="1" step="0.1" />
             <span class="text-xs text-neutral-500">Minimum importance score (0-1) for entries to be retained.</span>
           </div>
         </div>

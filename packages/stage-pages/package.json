@@ -53,6 +53,7 @@
     "vue-i18n": "^11.3.2",
     "vue-router": "^5.0.4",
     "vue-sonner": "catalog:",
+    "valibot": "catalog:",
     "xsschema": "catalog:",
     "zod": "catalog:"
   },
@@ -65,7 +66,6 @@
     "@webgpu/types": "catalog:",
     "unplugin-info": "catalog:",
     "vitest": "catalog:vitest",
-    "vue-tsc": "^3.2.6",
-    "valibot": "catalog:"
+    "vue-tsc": "^3.2.6"
   }
 }

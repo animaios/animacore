@@ -59,6 +59,41 @@ export interface ActingConfig {
   idleAnimations?: string[]
 }
 
+/**
+ * Artistry configuration for an outfit.
+ */
+export interface OutfitArtistry {
+  provider?: string
+  model?: string
+  options?: Record<string, any>
+}
+
+/**
+ * Manifestation configuration for an outfit.
+ */
+export interface OutfitManifestation {
+  modelId?: string
+  mood?: string
+  backgroundId?: string
+  active_expressions?: Record<string, number>
+}
+
+/**
+ * Legacy artistry settings shape for migration from modules.artistry.
+ * Preserved for reading old card data.
+ */
+export interface LegacyArtistrySettings {
+  artistry?: {
+    provider?: string
+    model?: string
+    promptPrefix?: string
+    widgetInstruction?: string
+    spawnMode?: 'bg' | 'widget' | 'inline' | 'bg_widget'
+    workflowId?: string
+    options?: Record<string, any>
+  }
+}
+
 export interface AiriOutfit {
   id: string
   name: string
@@ -621,13 +656,17 @@ export const useAiriCardStore = defineStore('airi-card', () => {
    * Uses immutable Map pattern for reactivity safety.
    */
   const addCard = async (card: AiriCard | Card | ccv3.CharacterCardV3) => {
+    // Extract name/version from card (ccv3 nests under .data)
+    const cardName = 'data' in card ? (card.data as any)?.name : card.name
+    const cardVersion = 'data' in card ? (card.data as any)?.character_version : card.version
+
     // Validate card name
-    if (!card.name || typeof card.name !== 'string' || card.name.trim() === '') {
+    if (!cardName || typeof cardName !== 'string' || cardName.trim() === '') {
       throw new Error('Card name is required')
     }
 
     // Validate spec version if it exists
-    if (card.version && typeof card.version !== 'string') {
+    if (cardVersion && typeof cardVersion !== 'string') {
       throw new Error('Spec version must be a string')
     }
 
@@ -749,7 +788,6 @@ export const useAiriCardStore = defineStore('airi-card', () => {
 
     // Create a deep clone of the card
     const clonedCard = JSON.parse(JSON.stringify(sourceCard))
-    const newCardId = nanoid()
     const newName = `${clonedCard.name} (copy)`
 
     // Update the name and add timestamps
@@ -758,8 +796,7 @@ export const useAiriCardStore = defineStore('airi-card', () => {
     clonedCard.updatedAt = new Date().toISOString()
 
     // Add the cloned card to the store
-    const newCardIdResult = await addCard(clonedCard)
-    return newCardIdResult
+    return await addCard(clonedCard)
   }
 
   const getCardDisplayModelId = (id: string) => {

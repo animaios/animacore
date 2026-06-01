@@ -249,58 +249,6 @@ async function finalizeImport() {
       })
     }
 
-    // const finalCard = {
-      ...props.cardData,
-      name: name.value.trim(),
-      description: replacePatterns(cardDescription.value),
-      personality: replacePatterns(cardPersonality.value),
-      scenario: replacePatterns(cardScenario.value),
-      systemPrompt: replacePatterns(cardSystemPrompt.value) || DEFAULT_SYSTEM_PROMPT,
-      postHistoryInstructions: replacePatterns(cardPostHistoryInstructions.value) || DEFAULT_POST_HISTORY_INSTRUCTIONS,
-      greetings: formattedGreetings,
-      messageExample: formattedMessageExample,
-      extensions: {
-        ...cardExtensions.value,
-        airi: {
-          ...(cardExtensions.value?.airi as Record<string, unknown> | undefined),
-          modules: {
-            ...((cardExtensions.value?.airi as Record<string, unknown> | undefined)?.modules as
-              | Record<string, unknown>
-              | undefined),
-            consciousness: {
-              provider: selectedConsciousnessProvider.value,
-              model: selectedConsciousnessModel.value,
-            },
-            speech: {
-              provider: selectedSpeechProvider.value,
-              model: selectedSpeechModel.value,
-              voice_id: selectedSpeechVoiceId.value,
-            },
-            displayModelId: selectedDisplayModelId.value,
-            activeBackgroundId: 'none',
-          },
-          artistry: {
-            ...((cardExtensions.value?.airi as Record<string, unknown> | undefined)?.artistry as
-              | Record<string, unknown>
-              | undefined),
-            autonomousEnabled: artistryAutonomousEnabled.value,
-          },
-          dreamState: {
-            ...((cardExtensions.value?.airi as Record<string, unknown> | undefined)?.dreamState as
-              | Record<string, unknown>
-              | undefined),
-            enabled: dreamStateEnabled.value,
-          },
-          heartbeats: {
-            ...((cardExtensions.value?.airi as Record<string, unknown> | undefined)?.heartbeats as
-              | Record<string, unknown>
-              | undefined),
-            enabled: proactivityEnabled.value,
-          },
-        } as AiriExtension,
-      },
-    }
-
     const finalCard: AiriCard = {
       ...props.cardData,
       name: name.value.trim(),

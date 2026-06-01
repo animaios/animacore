@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Card } from '@proj-airi/ccc'
-import type { AiriExtension } from '@proj-airi/stage-ui/stores/modules/airi-card'
+import type { AiriExtension, AiriOutfit } from '@proj-airi/stage-ui/stores/modules/airi-card'
 import type { SpeechCapabilitiesInfo } from '@proj-airi/stage-ui/stores/providers'
 
 import kebabcase from '@stdlib/string-base-kebabcase'
@@ -38,7 +38,7 @@ import { useI18n } from 'vue-i18n'
 import FieldAiGeneratorModal from './FieldAiGeneratorModal.vue'
 import CardCreationTabActing from './tabs/CardCreationTabActing.vue'
 import CardCreationTabArtistry from './tabs/CardCreationTabArtistry.vue'
-import CardCreationTabOutfits from './tabs/CardCreationTabOutfits.vue'
+import CardCreationTabOutfits from './CardCreationTabOutfits.vue'
 import CardCreationTabBehavior from './tabs/CardCreationTabBehavior.vue'
 import CardCreationTabGeneration from './tabs/CardCreationTabGeneration.vue'
 import CardCreationTabIdentity from './tabs/CardCreationTabIdentity.vue'
@@ -577,18 +577,8 @@ interface Tab {
   icon: string
 }
 
-// Outfit type definition
-interface Outfit {
-  id: string
-  name: string
-  type: 'base' | 'overlay'
-  expressions: string[]
-  backgroundId: string
-  expressionCount: number
-}
-
 // Outfits state
-const outfits = ref<Outfit[]>([])
+const outfits = ref<AiriOutfit[]>([])
 const selectedOutfitId = ref<string>('')
 
 // Initialize outfits
@@ -597,7 +587,10 @@ const initializeOutfits = () => {
     const existingCard = cardStore.getCard(props.cardId)
     const airiExt = existingCard?.extensions?.airi as AiriExtension | undefined
     if (airiExt?.outfits) {
-      outfits.value = airiExt.outfits.map((outfit) => ({ ...outfit, expressionCount: outfit.expressions.length }))
+      outfits.value = airiExt.outfits.map((outfit) => ({
+        ...outfit,
+        expressionCount: Object.keys(outfit.expressions || {}).length,
+      }))
     } else {
       outfits.value = []
     }
@@ -608,13 +601,12 @@ const initializeOutfits = () => {
 
 // Add a new outfit
 const addOutfit = () => {
-  const newOutfit: Outfit = {
+  const newOutfit: AiriOutfit = {
     id: Date.now().toString(),
     name: 'New Outfit',
     type: 'base',
-    expressions: [],
+    expressions: {},
     backgroundId: 'none',
-    expressionCount: 0,
   }
   outfits.value.push(newOutfit)
   selectedOutfitId.value = newOutfit.id
@@ -629,7 +621,7 @@ const deleteOutfit = (id: string) => {
 }
 
 // Update outfits
-const updateOutfits = (updatedOutfits: Outfit[]) => {
+const updateOutfits = (updatedOutfits: AiriOutfit[]) => {
   outfits.value = updatedOutfits
 }
 
@@ -852,7 +844,7 @@ async function saveCard(card: Card): Promise<boolean> {
         visual_assets: existingAiriExt?.visual_assets || {},
         active_concepts: existingAiriExt?.active_concepts || [],
         eternal_record: existingAiriExt?.eternal_record || { relational_milestones: [], lore_bits: [] },
-      } as AiriExtension,
+      } as unknown as AiriExtension,
     },
   }
 
@@ -890,13 +882,8 @@ async function saveCard(card: Card): Promise<boolean> {
 
 // Cards data holders :
 
-// Initialize card data - load from existing card if in edit mode
-function initializeCard(): Card {
-  // Extract existing card data if in edit mode
-  const existingCard = isEditMode.value && props.cardId ? cardStore.getCard(props.cardId) : undefined
-  const airiExt = existingCard?.extensions?.airi as AiriExtension | undefined
-
-  // Initialize module selections with fallback logic (handles all cases: create, edit with/without extension)
+// Initialize module-related fields from extension data
+function initializeModuleFields(airiExt: AiriExtension | undefined): void {
   selectedConsciousnessProvider.value = airiExt?.modules?.consciousness?.provider || consciousnessProvider.value
   selectedConsciousnessModel.value = airiExt?.modules?.consciousness?.model || defaultConsciousnessModel.value
   selectedSpeechProvider.value = airiExt?.modules?.speech?.provider || speechProvider.value
@@ -905,16 +892,25 @@ function initializeCard(): Card {
   selectedSpeechPitch.value = airiExt?.modules?.speech?.pitch ?? 1.0
   selectedSpeechRate.value = airiExt?.modules?.speech?.rate ?? 1.0
   selectedSpeechLanguage.value = airiExt?.modules?.speech?.language || ''
-  selectedSpeechSsml.value = airiExt?.modules?.speech?.ssml || ''
+  selectedSpeechSsml.value = airiExt?.modules?.speech?.ssml ? String(airiExt.modules.speech.ssml) : ''
   selectedDisplayModelId.value = airiExt?.modules?.displayModelId || defaultDisplayModelId.value
   const activeBg = airiExt?.modules?.activeBackgroundId || (airiExt?.modules as any)?.preferredBackgroundId
-  selectedActiveBackgroundId.value = !activeBg ? 'none' : activeBg
+  selectedActiveBackgroundId.value = !activeBg ? 'none' : String(activeBg)
+}
 
-  // Initialize outfits
+// Initialize outfit fields from extension data
+function initializeOutfitFields(airiExt: AiriExtension | undefined): void {
   if (airiExt?.outfits) {
-    outfits.value = airiExt.outfits.map((outfit) => ({ ...outfit, expressionCount: outfit.expressions.length }))
+    outfits.value = airiExt.outfits.map((outfit) => ({
+      ...outfit,
+      expressionCount: Object.keys(outfit.expressions || {}).length,
+    }))
     selectedOutfitId.value = airiExt.outfits.length > 0 ? airiExt.outfits[0].id : ''
   }
+}
+
+// Initialize artistry fields from extension data
+function initializeArtistryFields(airiExt: AiriExtension | undefined): void {
   selectedArtistryProvider.value = airiExt?.artistry?.provider || defaultArtistryProvider.value
   selectedArtistryModel.value = airiExt?.artistry?.model || ''
   selectedArtistryPromptPrefix.value = airiExt?.artistry?.promptPrefix || ''
@@ -925,6 +921,17 @@ function initializeCard(): Card {
   selectedArtistryAutonomousHistoryDepth.value = airiExt?.artistry?.autonomousHistoryDepth ?? 3
   selectedArtistryAutonomousTarget.value = airiExt?.artistry?.autonomousTarget ?? 'user'
   selectedArtistrySpawnMode.value = airiExt?.artistry?.spawnMode ?? 'bg_widget'
+  try {
+    selectedArtistryConfigStr.value = airiExt?.artistry?.options
+      ? JSON.stringify(airiExt.artistry.options, null, 2)
+      : '{\n  \n}'
+  } catch {
+    selectedArtistryConfigStr.value = '{\n  \n}'
+  }
+}
+
+// Initialize generation fields from extension data
+function initializeGenerationFields(airiExt: AiriExtension | undefined): void {
   generationEnabled.value = airiExt?.generation?.enabled ?? false
   generationProvider.value =
     airiExt?.generation?.provider || airiExt?.modules?.consciousness?.provider || consciousnessProvider.value
@@ -938,22 +945,22 @@ function initializeCard(): Card {
   generationAdvancedJson.value = airiExt?.generation?.advanced
     ? JSON.stringify(airiExt.generation.advanced, null, 2)
     : '{\n  \n}'
+  compactionStrategy.value = airiExt?.generation?.compaction?.strategy || 'none'
+  compactionMinKeepTurns.value = airiExt?.generation?.compaction?.minKeepTurns ?? 15
+}
+
+// Initialize acting fields from extension data
+function initializeActingFields(airiExt: AiriExtension | undefined): void {
   selectedActingModelExpressionPrompt.value = airiExt?.acting?.modelExpressionPrompt || DEFAULT_ACTING_MODEL_PROMPT
   selectedActingSpeechExpressionPrompt.value =
     airiExt?.acting?.speechExpressionPrompt || DEFAULT_ACTING_SPEECH_EXPRESSION_PROMPT
   selectedActingSpeechMannerismPrompt.value =
     airiExt?.acting?.speechMannerismPrompt || DEFAULT_ACTING_SPEECH_MANNERISM_PROMPT
   selectedActingIdleAnimations.value = [...(airiExt?.acting?.idleAnimations || [])]
-  compactionStrategy.value = airiExt?.generation?.compaction?.strategy || 'none'
-  compactionMinKeepTurns.value = airiExt?.generation?.compaction?.minKeepTurns ?? 15
-  try {
-    selectedArtistryConfigStr.value = airiExt?.artistry?.options
-      ? JSON.stringify(airiExt.artistry.options, null, 2)
-      : '{\n  \n}'
-  } catch {
-    selectedArtistryConfigStr.value = '{\n  \n}'
-  }
+}
 
+// Initialize proactivity fields (heartbeats, dream state, grounding, short-term memory)
+function initializeProactivityFields(airiExt: AiriExtension | undefined): void {
   heartbeatsEnabled.value = airiExt?.heartbeats?.enabled ?? false
   heartbeatsIntervalMinutes.value = airiExt?.heartbeats?.intervalMinutes ?? 5
   heartbeatsPrompt.value = airiExt?.heartbeats?.prompt ?? DEFAULT_HEARTBEATS_PROMPT
@@ -972,10 +979,22 @@ function initializeCard(): Card {
   shortTermMemoryMaxEntries.value = airiExt?.shortTermMemory?.maxEntries ?? 100
   shortTermMemoryRetentionMinutes.value = airiExt?.shortTermMemory?.retentionMinutes ?? 60
   shortTermMemoryImportanceThreshold.value = airiExt?.shortTermMemory?.importanceThreshold ?? 0.5
+}
+
+// Initialize card data - load from existing card if in edit mode
+function initializeCard(): Card {
+  const existingCard = isEditMode.value && props.cardId ? cardStore.getCard(props.cardId) : undefined
+  const airiExt = existingCard?.extensions?.airi as AiriExtension | undefined
+
+  initializeModuleFields(airiExt)
+  initializeOutfitFields(airiExt)
+  initializeArtistryFields(airiExt)
+  initializeGenerationFields(airiExt)
+  initializeActingFields(airiExt)
+  initializeProactivityFields(airiExt)
 
   loadActingSpeechCapabilities(selectedSpeechProvider.value || speechProvider.value)
 
-  // Return existing card data or defaults
   if (existingCard) {
     return { ...toRaw(existingCard) }
   }
@@ -1279,8 +1298,8 @@ function handleGeneratorSave(newValue: string) {
             :outfits="outfits"
             :selectedOutfitId="selectedOutfitId"
             @update:selectedOutfitId="selectedOutfitId = $event"
-            @addOutfit="addOutfit"
-            @deleteOutfit="deleteOutfit"
+            @add-outfit="addOutfit"
+            @delete-outfit="deleteOutfit"
             @update:outfits="updateOutfits"
           />
           <CardCreationTabModules
@@ -1313,8 +1332,8 @@ function handleGeneratorSave(newValue: string) {
             :speech-provider-active="Boolean(speechProvider)"
             :speech-pitch="1.0"
             :speech-rate="1.0"
-            :speech-language="''"
-            :speech-ssml="''"
+            speech-language=""
+            speech-ssml=""
             speech-pitch-placeholder="1.0"
             speech-rate-placeholder="1.0"
             speech-language-placeholder="e.g. en-US"
