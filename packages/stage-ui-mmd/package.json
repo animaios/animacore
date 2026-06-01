@@ -35,7 +35,7 @@
     "@tresjs/cientos": "^5.7.0",
     "@tresjs/core": "^5.8.0",
     "@vueuse/core": "^14.2.1",
-    "jszip": "catalog:",
+    "jszip": "^3.10.1",
     "pinia": "^3.0.4",
     "three": "^0.184.0",
     "vue": "catalog:"
