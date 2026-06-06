@@ -48,6 +48,10 @@ export interface StreamingTtsSessionOptions {
    * `section_id`, `context_texts`, etc.
    */
   extraBody?: Record<string, unknown>
+  /** Business trigger hint sent to server-side product analytics. */
+  ttsTrigger?: 'auto' | 'manual'
+  /** Low-cardinality source hint sent to server-side product analytics. */
+  ttsSource?: 'chat_auto_tts' | 'manual_preview' | 'settings_test'
   /** Caller-side abort signal. Closes the ws and rejects with `AbortError`. */
   signal?: AbortSignal
 }
@@ -78,7 +82,10 @@ export async function streamingSynthesize(options: StreamingTtsSessionOptions): 
   if (!token) throw new Error('streaming-tts: not authenticated')
 
   const baseUrl = options.serverUrl ?? SERVER_URL
-  const wsUrl = toWebSocketUrl(baseUrl, '/api/v1/audio/speech/ws', token)
+  const wsUrl = toWebSocketUrl(baseUrl, '/api/v1/audio/speech/ws', token, {
+    ttsTrigger: options.ttsTrigger ?? 'manual',
+    ttsSource: options.ttsSource ?? 'manual_preview',
+  })
 
   const audioChunks: ArrayBuffer[] = []
   const sentences: StreamingTtsSessionResult['sentences'] = []
@@ -211,10 +218,17 @@ export async function streamingSynthesize(options: StreamingTtsSessionOptions): 
   })
 }
 
-function toWebSocketUrl(httpBase: string, path: string, token: string): string {
+function toWebSocketUrl(
+  httpBase: string,
+  path: string,
+  token: string,
+  analytics: { ttsTrigger: 'auto' | 'manual', ttsSource: 'chat_auto_tts' | 'manual_preview' | 'settings_test' },
+): string {
   const u = new URL(path, httpBase)
   u.protocol = u.protocol === 'https:' ? 'wss:' : 'ws:'
   u.searchParams.set('token', token)
+  u.searchParams.set('tts_trigger', analytics.ttsTrigger)
+  u.searchParams.set('tts_source', analytics.ttsSource)
   return u.toString()
 }
 
