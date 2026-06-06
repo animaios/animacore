@@ -45,9 +45,6 @@ const router = createRouter({
   routes: setupLayouts(routes as RouteRecordRaw[]),
 })
 
-// Initialize the chara card download bridge
-initializeCharaCardDownloadBridge()
-
 createApp(App)
   .use(MotionPlugin)
   // TODO: Fix autoAnimatePlugin type error
@@ -58,3 +55,6 @@ createApp(App)
   .use(i18n)
   .use(Tres)
   .mount('#app')
+
+// Initialize the chara card download bridge after Pinia is set up
+initializeCharaCardDownloadBridge()
