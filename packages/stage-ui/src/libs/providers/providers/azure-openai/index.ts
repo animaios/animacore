@@ -98,11 +98,11 @@ interface ChatCompletionsRequestBody {
 }
 
 function mapChatBodyToCompletions(body: ChatCompletionsRequestBody | null): Record<string, unknown> {
-  const safeBody = body ?? {}
+  const safeBody: ChatCompletionsRequestBody = body ?? {}
   const mappedBody: Record<string, unknown> = {
     ...safeBody,
-    messages: body?.messages,
-    max_completion_tokens: body?.max_completion_tokens ?? body?.max_output_tokens ?? body?.max_tokens,
+    messages: safeBody.messages,
+    max_completion_tokens: safeBody.max_completion_tokens ?? safeBody.max_output_tokens ?? safeBody.max_tokens,
   }
 
   delete mappedBody.input
@@ -211,8 +211,8 @@ export const providerAzureOpenAI = defineProvider<AzureOpenAIConfig>({
 
     return {
       ...provider,
-      model: () => ({
-        ...provider.model(),
+      model: (...args: Parameters<typeof provider.model>) => ({
+        ...provider.model(...args),
         fetch,
       }),
       chat: (model: string) => ({
