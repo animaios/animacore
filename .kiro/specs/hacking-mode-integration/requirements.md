@@ -55,8 +55,10 @@ The integration must preserve the Code module's independence (it remains a stand
 7. IF bridge_ready is not reached within 15000ms total, THEN THE Service SHALL transition to "failed" state and kill Code_Process
 8. WHEN the Electron app quits, THE Hacking_Session_Service SHALL send SIGTERM to Code_Process and wait up to 3000ms for graceful shutdown
 9. IF Code_Process does not exit within timeout, THEN THE Service SHALL send SIGKILL to force termination
-10. WHEN Code_Process crashes unexpectedly while state is "active", THE Service SHALL transition to "failed" and emit state change event
-11. THE Hacking_Session_Service SHALL log PID, port, startup duration, and all three readiness transitions using `@guiiai/logg` namespace "hacking-session"
+10. WHEN Code_Process crashes or exits unexpectedly while state is "active", THE Service SHALL immediately invalidate current sessionId and execute full teardown
+11. THE full teardown sequence SHALL execute in order: (1) stop Input_Gateway routing, (2) close WebSocket, (3) destroy BrowserView, (4) set sessionId to null, (5) transition to "failed"
+12. IF Code_Process restarts mid-session (detected by PID change), THEN THE Service SHALL treat it as a crash and execute full teardown (session is NOT preserved)
+13. THE Hacking_Session_Service SHALL log PID, port, startup duration, and all three readiness transitions using `@guiiai/logg` namespace "hacking-session"
 
 ### Requirement 3: Code Bridge Service for WebSocket and Config Sync
 
@@ -68,14 +70,17 @@ The integration must preserve the Code module's independence (it remains a stand
 2. THE Code_Bridge_Service SHALL establish WebSocket connection to ws://localhost:3210/bridge with sessionId in handshake payload
 3. WHEN WebSocket connection opens, THE Code_Bridge_Service SHALL send authentication message: `{ type: "auth", sessionId, token: <shared-secret> }`
 4. IF authentication fails (Code_Backend responds with close code 4001), THEN THE Code_Bridge_Service SHALL emit error and not attempt reconnection
-5. WHEN Code_Backend emits a "summary" message, THE Code_Bridge_Service SHALL validate payload contains { text, metadata: { mode, model, tokens } }
-6. WHEN a valid summary is received, THE Code_Bridge_Service SHALL emit Eventa broadcast `electronCodeSummaryReceived` with payload { sessionId, text, metadata }
-7. THE Code_Bridge_Service SHALL ignore all other summary sources (BrowserView events, HTTP polling) to prevent duplication
-8. WHEN Hacking_Session_Service.activate() is called with config parameter, THE Code_Bridge_Service SHALL POST config to http://localhost:3210/config with sessionId header
-9. IF config sync fails, THEN THE Code_Bridge_Service SHALL log error but allow activation to proceed (Code uses stored settings)
-10. WHEN WebSocket connection closes unexpectedly, THE Code_Bridge_Service SHALL attempt reconnection with exponential backoff (base: 1000ms, max: 30000ms)
-11. WHEN Hacking_Session_Service.deactivate() is called, THE Code_Bridge_Service SHALL close WebSocket connection and stop reconnection attempts
-12. THE Code_Bridge_Service SHALL implement keepalive pings every 30000ms to detect stale connections
+5. WHEN Code_Backend emits a "summary" message, THE Code_Bridge_Service SHALL validate payload contains { sessionId, text, metadata: { mode, model, tokens } }
+6. IF summary sessionId does not match current Hacking_Session sessionId, THEN THE Code_Bridge_Service SHALL log warning "Received summary from stale session" and discard message
+7. WHEN a valid summary is received (sessionId matches), THE Code_Bridge_Service SHALL emit Eventa broadcast `electronCodeSummaryReceived` with payload { sessionId, text, metadata }
+8. THE Code_Bridge_Service SHALL ignore all other summary sources (BrowserView events, HTTP polling) to prevent duplication
+9. WHEN Hacking_Session_Service.activate() is called with config parameter, THE Code_Bridge_Service SHALL POST config to http://localhost:3210/config with sessionId header
+10. IF config sync fails, THEN THE Code_Bridge_Service SHALL log error but allow activation to proceed (Code uses stored settings)
+11. WHEN WebSocket connection closes unexpectedly AND state is "active", THE Code_Bridge_Service SHALL attempt reconnection with exponential backoff (base: 1000ms, max: 30000ms)
+12. IF reconnection succeeds, THE Code_Bridge_Service SHALL send handshake with CURRENT sessionId (must match or trigger full resync)
+13. IF 5 consecutive reconnection attempts fail, THE Code_Bridge_Service SHALL notify Hacking_Session_Service to transition to "failed" and execute teardown
+14. WHEN Hacking_Session_Service.deactivate() is called OR state transitions to "failed", THE Code_Bridge_Service SHALL close WebSocket connection and stop all reconnection attempts
+15. THE Code_Bridge_Service SHALL implement keepalive pings every 30000ms to detect stale connections
 
 ### Requirement 4: UI Adapter Layer for BrowserView Management
 
@@ -92,9 +97,11 @@ The integration must preserve the Code module's independence (it remains a stand
 7. WHILE state is "active", THE UI_Adapter_Layer SHALL update BrowserView bounds whenever Main_Window resizes, recalculating within 16ms (60fps frame budget)
 8. IF BrowserView fails to load within 10000ms, THEN THE UI_Adapter_Layer SHALL retry once after 2000ms
 9. IF retry fails, THEN THE Hacking_Session_Service SHALL transition to "failed" state with lastError indicating load timeout
-10. WHEN state transitions from "active" to "inactive" or "failed", THE UI_Adapter_Layer SHALL detach and destroy BrowserView instance
-11. THE UI_Adapter_Layer SHALL NOT expose any Electron APIs to Code_Module via preload scripts
-12. THE UI_Adapter_Layer SHALL log BrowserView ID, bounds, and lifecycle events using namespace "hacking-session:ui"
+10. WHEN state transitions from "active" to ANY other state (inactive, failed), THE UI_Adapter_Layer SHALL immediately blank BrowserView content (load about:blank) BEFORE destroying instance
+11. THE blanking step (about:blank) SHALL complete BEFORE WebSocket close to prevent ghost UI execution
+12. THE destruction sequence SHALL execute in strict order: (1) blank BrowserView, (2) detach from Main_Window, (3) destroy BrowserView instance
+13. THE UI_Adapter_Layer SHALL NOT expose any Electron APIs to Code_Module via preload scripts
+14. THE UI_Adapter_Layer SHALL log BrowserView ID, bounds, and lifecycle events using namespace "hacking-session:ui"
 
 ### Requirement 5: Input Gateway for Normalized Message Routing
 
@@ -196,6 +203,9 @@ The integration must preserve the Code module's independence (it remains a stand
 5. ERROR logs SHALL include: timestamp, sessionId, state before error, error message, stack trace, processInfo (PID, port)
 6. WHEN BrowserView load fails after retry, THE lastError SHALL be set to "BrowserView failed to load after 2 attempts"
 7. THE Settings_Page SHALL display a "Retry" button when state is "failed"
+8. WHEN "Retry" button is clicked, THE Settings_Page SHALL invoke `electronHackingSessionActivate` with SAME config parameters (implicit retry)
+9. THE retry operation SHALL always generate a NEW sessionId (never reuse failed sessionId)
+10. THE retry operation SHALL apply the same provider config and mode selection from previous activation attempt
 
 ### Requirement 11: Keyboard Shortcut for Toggle
 
@@ -323,4 +333,30 @@ The integration must preserve the Code module's independence (it remains a stand
 8. ALL log entries SHALL include timestamp (ISO 8601 format) and sessionId when available
 9. THE Hacking_Session_Service SHALL write logs to ~/.kiro/logs/hacking-session.log with daily rotation (max 7 days retention)
 10. IN debug mode (env var HACKING_SESSION_DEBUG=1), THE Service SHALL also log to console and include additional metadata
+
+### Requirement 19: Hard Teardown Contract
+
+**User Story:** As a developer, I want explicit teardown ordering guarantees, so that shutdown is deterministic and prevents ghost states across process, WebSocket, and UI boundaries.
+
+#### Acceptance Criteria
+
+1. WHEN state transitions from "active" to "failed" OR "inactive", THE Hacking_Session_Service SHALL execute teardown in strict order
+2. THE teardown order SHALL be:
+   - Step 1: Stop Input_Gateway routing (prevent new messages)
+   - Step 2: Blank BrowserView content (load about:blank to halt JS execution)
+   - Step 3: Close WebSocket connection (send close frame, wait max 1000ms)
+   - Step 4: Send SIGTERM to Code_Process (wait max 3000ms)
+   - Step 5: If process still alive, send SIGKILL
+   - Step 6: Detach and destroy BrowserView instance
+   - Step 7: Set sessionId to null
+   - Step 8: Emit `electronHackingSessionStateChanged` with new state
+3. EACH step SHALL complete before proceeding to next step (no parallel teardown)
+4. IF any step times out, THE Service SHALL log warning and proceed to next step (teardown is best-effort but must complete)
+5. THE teardown SHALL be idempotent (safe to call multiple times)
+6. WHEN teardown completes, THE Hacking_Session_Service SHALL guarantee:
+   - No WebSocket messages can arrive
+   - No BrowserView UI is mounted
+   - No Code_Process is running
+   - No sessionId is active
+7. THE Input_Gateway SHALL reject all messages during teardown (steps 1-8) and queue them for after state settles
 
