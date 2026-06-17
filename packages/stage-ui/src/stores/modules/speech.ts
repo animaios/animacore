@@ -442,7 +442,7 @@ export const useSpeechStore = defineStore('speech', () => {
           })
         : providerConfig
     const response = await generateSpeech({
-      ...provider.speech(model, requestProviderConfig as TConfig),
+      ...provider.speech(model, requestProviderConfig),
       input,
       voice,
     })
@@ -450,10 +450,10 @@ export const useSpeechStore = defineStore('speech', () => {
     return response
   }
 
-  function withAiriTtsAnalytics(
-    providerConfig: Record<string, unknown>,
+  function withAiriTtsAnalytics<T extends Record<string, unknown>>(
+    providerConfig: T,
     analytics: { trigger: 'auto' | 'manual'; source: 'chat_auto_tts' | 'manual_preview' | 'settings_test' },
-  ): Record<string, unknown> {
+  ): T {
     return {
       ...providerConfig,
       extraBody: {
