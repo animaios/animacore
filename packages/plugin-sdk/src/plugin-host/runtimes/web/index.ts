@@ -1,5 +1,6 @@
 import type { PluginTransport } from '../../transports'
 
+import type { ChannelHost } from '../../channels/shared'
 import { createContext } from '@moeru/eventa'
 
 export * from '../../core'
@@ -18,7 +19,7 @@ export * from '../../transports'
  * Returns:
  * - A web-compatible Eventa context, or throws if the transport is not implemented
  */
-export function createPluginContext(transport: PluginTransport) {
+export function createPluginContext(transport: PluginTransport): ChannelHost {
   switch (transport.kind) {
     case 'in-memory':
       return createContext()

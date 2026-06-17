@@ -1,3 +1,5 @@
+import type { ChannelHost } from './shared'
+
 import { createContext } from '@moeru/eventa'
 
 /**
@@ -44,7 +46,7 @@ export const channels = {
  * Returns:
  * - Nothing. Future reads from {@link channels}.host use the provided context.
  */
-export function setActiveHostChannel(context: typeof channels.host) {
+export function setActiveHostChannel(context: ChannelHost) {
   channels.host = context
 }
 
