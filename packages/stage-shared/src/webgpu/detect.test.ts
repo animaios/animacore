@@ -170,7 +170,7 @@ describe('detectWebGPU', () => {
 
     const legacyAdapter = {
       limits: { maxBufferSize: 256 * 1024 * 1024 },
-      requestAdapterInfo: vi.fn(async () => legacyInfo),
+      requestAdapterInfo: vi.fn(() => Promise.resolve(legacyInfo)),
     }
 
     mockedCheck.mockResolvedValue({

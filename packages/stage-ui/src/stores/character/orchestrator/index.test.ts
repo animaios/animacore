@@ -36,16 +36,14 @@ function mockedStore<TStoreDef extends () => unknown>(
       State,
       Record<string, never>,
       {
-        [K in keyof Actions]: Actions[K] extends (...args: never[]) => unknown
-          ? // 👇 depends on your testing framework
-            Mock<Actions[K]>
-          : Actions[K]
+        // deepsource:issue=JS-0323
+        [K in keyof Actions]: Actions[K] extends (...args: any[]) => any ? Mock<Actions[K]> : Actions[K]
       }
     > & {
       [K in keyof Getters]: UnwrapRef<Getters[K]>
     }
   : ReturnType<TStoreDef> {
-  return useStore() as unknown as ReturnType<typeof mockedStore<TStoreDef>>
+  return useStore() as never
 }
 
 function getObjectSchema(schema?: Record<string, unknown>) {
@@ -72,7 +70,7 @@ describe('sparkNotifyCommandSchema', () => {
       name: 'builtIn_sparkCommand',
       description: 'test',
       parameters: sparkNotifyCommandSchema,
-      execute: async () => undefined,
+      execute: () => Promise.resolve(undefined),
     })
 
     const schema = sparkTool.function.parameters as Record<string, unknown>
