@@ -419,7 +419,7 @@ export function createKokoroAdapter(): KokoroAdapter {
                 state = 'ready'
                 updateInferenceStatus(modelStatusId, {
                   state: 'ready',
-                  device: (response.device ?? effectiveDevice) as 'webgpu' | 'wasm' | 'cpu' | 'unknown',
+                  device: (response.device ?? effectiveDevice) as InferenceModelStatus['device'],
                 })
                 onSuccess()
                 if (!voices) throw new Error('Kokoro worker did not return voice metadata')

@@ -473,10 +473,10 @@ export const useHearingSpeechInputPipeline = defineStore('modules:hearing:speech
         }
 
         // Stop Web Speech API recognition if it exists
-        const result = session.result
-        if (result?.recognition && typeof result.recognition === 'object' && 'stop' in result.recognition) {
+        const result = session.result as { recognition?: { stop?: () => void } } | null | undefined
+        if (result?.recognition?.stop) {
           try {
-            ;(result.recognition as { stop: () => void }).stop()
+            result.recognition.stop()
           } catch (err) {
             console.warn('Error stopping Web Speech API recognition:', err)
           }

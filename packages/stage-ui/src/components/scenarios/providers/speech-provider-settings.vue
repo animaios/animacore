@@ -97,6 +97,10 @@ watch(
       if (targetBaseUrl !== baseUrl.value) {
         baseUrl.value = targetBaseUrl
       }
+    } else {
+      // Reset local refs when provider config is removed
+      apiKey.value = ''
+      baseUrl.value = extractStringValue(providerMetadata.value?.defaultOptions?.().baseUrl)
     }
   },
   { immediate: true, deep: true },
