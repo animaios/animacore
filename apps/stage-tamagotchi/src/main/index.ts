@@ -167,6 +167,17 @@ app
       build: () => setupHackingSessionService(),
     })
 
+    // Register CodeBridgeService
+    const codeBridgeService = injeca.provide('services:code-bridge', {
+      dependsOn: { hackingSession: hackingSessionService },
+      build: ({ dependsOn }) =>
+        setupCodeBridgeService(dependsOn.hackingSession, {
+          port: dependsOn.hackingSession.getPort?.() ?? 0,
+          sessionId: dependsOn.hackingSession.getState().sessionId ?? '',
+          bridgeToken: dependsOn.hackingSession.getBridgeToken?.() ?? '',
+        }),
+    })
+
     const mcpStdioManager = injeca.provide('modules:mcp-stdio-manager', {
       build: async () => setupMcpStdioManager(),
     })

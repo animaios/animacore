@@ -19,12 +19,18 @@ import { onAppBeforeQuit } from '../../libs/bootkit/lifecycle'
  * - `active` — Fully operational, WebView mounted, WebSocket connected
  * - `failed` — Error occurred, teardown completed, retry available
  */
-export type HackingSessionState = 'inactive' | 'starting' | 'active' | 'failed'
+import type {
+  HackingSessionState,
+  CodeMode,
+  ProviderConfig,
+  ActivationConfig,
+  ProcessInfo,
+} from '../../../shared/hacking-session'
 
 /**
  * Code mode selection for the Code module.
  */
-export type CodeMode = 'spec' | 'vibe' | 'boss' | 'ask' | 'debug'
+// CodeMode now imported from shared/hacking-session
 
 /**
  * Provider configuration for Code module.
