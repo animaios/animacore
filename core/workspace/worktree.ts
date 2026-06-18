@@ -100,7 +100,8 @@ export class WorkspaceWorktree {
 			})
 		} catch (error: unknown) {
 			// If git remove fails, try manual cleanup.
-			if ((error as NodeJS.ErrnoException).code === "ENOENT" || (error as { stderr?: string }).stderr?.includes("not a worktree")) {
+			const err = error as Partial<NodeJS.ErrnoException> & { stderr?: string } | undefined
+			if (err?.code === "ENOENT" || err?.stderr?.includes("not a worktree")) {
 				await fs.rm(worktreePath, { recursive: true, force: true })
 			} else {
 				throw error

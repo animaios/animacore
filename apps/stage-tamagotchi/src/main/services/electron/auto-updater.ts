@@ -471,7 +471,7 @@ export function setupAutoUpdater(options: AutoUpdaterOptions = {}): AutoUpdater 
     getPreferredUpdateLane() {
       return storedPreferredLane
     },
-    setPreferredUpdateLane(lane) {
+    async setPreferredUpdateLane(lane) {
       if (storedPreferredLane === lane) return
 
       storedPreferredLane = lane

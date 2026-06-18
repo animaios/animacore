@@ -116,7 +116,8 @@ export class WorkspaceStorage {
 			const content = await fs.readFile(manifestPath, "utf-8")
 			return JSON.parse(content) as WorkspaceDescriptor
 		} catch (error: unknown) {
-			if ((error as NodeJS.ErrnoException).code === "ENOENT") return null
+			const err = error as Partial<NodeJS.ErrnoException> | undefined
+			if (err?.code === "ENOENT") return null
 			throw error
 		}
 	}
@@ -134,7 +135,8 @@ export class WorkspaceStorage {
 		try {
 			entries = await fs.readdir(workspacesDir, { withFileTypes: true })
 		} catch (error: unknown) {
-			if ((error as NodeJS.ErrnoException).code === "ENOENT") return []
+			const err = error as Partial<NodeJS.ErrnoException> | undefined
+			if (err?.code === "ENOENT") return []
 			throw error
 		}
 
@@ -171,7 +173,8 @@ export class WorkspaceStorage {
 		try {
 			entries = await fs.readdir(workspacesDir, { withFileTypes: true })
 		} catch (error: unknown) {
-			if ((error as NodeJS.ErrnoException).code === "ENOENT") return 0
+			const err = error as Partial<NodeJS.ErrnoException> | undefined
+			if (err?.code === "ENOENT") return 0
 			throw error
 		}
 
