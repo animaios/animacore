@@ -8,9 +8,8 @@
  * 1. Create EventBus (inter-module communication).
  * 2. Create RuntimeClient (external communication, currently local-only).
  * 3. Create ModuleRegistry (module lifecycle management).
- * 4. (Reserved for future built-in modules)
- * 5. Connect the runtime client.
- * 6. Activate all modules in registration order.
+ * 4. Connect the runtime client.
+ * 5. Activate all modules in registration order.
  *    - Each successful activation emits ModuleActivated.
  *    - Each failed activation emits ModuleCrashed.
  *
