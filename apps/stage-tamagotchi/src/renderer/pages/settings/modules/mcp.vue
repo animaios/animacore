@@ -497,7 +497,7 @@ onMounted(async () => {
           <a
             :href="SERENA_SETUP_URL"
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
             class="font-medium text-primary-600 underline underline-offset-2 dark:text-primary-300"
           >
             {{ tn('presets.serena.guidance.link-label') }}

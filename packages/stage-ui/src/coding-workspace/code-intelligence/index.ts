@@ -408,7 +408,30 @@ function selectTool<Input extends Record<string, unknown>>(
   return { backend: 'available', tool: fallbackTool }
 }
 
+function pickBestSerenaGroup(
+  groups: Iterable<[string, NormalizedMcpToolSummary[]]>,
+): NormalizedMcpToolSummary[] | undefined {
+  return [...groups]
+    .filter(([, group]) => isLikelySerenaGroup(group))
+    .sort(([, left], [, right]) => distinctReadOnlyToolCount(right) - distinctReadOnlyToolCount(left))
+    .at(0)?.[1]
+}
+
 function selectSerenaReadOnlyTools(tools: NormalizedMcpToolSummary[]): Map<SerenaToolName, NormalizedMcpToolSummary> {
+  const groups = groupReadOnlySerenaTools(tools)
+  const selectedGroup = pickBestSerenaGroup(groups.entries())
+
+  const serenaTools = new Map<SerenaToolName, NormalizedMcpToolSummary>()
+  for (const tool of selectedGroup ?? []) {
+    if (isSerenaReadOnlyTool(tool.toolName) && !serenaTools.has(tool.toolName)) {
+      serenaTools.set(tool.toolName, tool)
+    }
+  }
+
+  return serenaTools
+}
+
+function groupReadOnlySerenaTools(tools: NormalizedMcpToolSummary[]): Map<string, NormalizedMcpToolSummary[]> {
   const groups = new Map<string, NormalizedMcpToolSummary[]>()
 
   for (const tool of tools) {
@@ -420,19 +443,7 @@ function selectSerenaReadOnlyTools(tools: NormalizedMcpToolSummary[]): Map<Seren
     groups.set(groupKey, [...(groups.get(groupKey) ?? []), tool])
   }
 
-  const selectedGroup = [...groups.entries()]
-    .filter(([, group]) => isLikelySerenaGroup(group))
-    .sort(([, left], [, right]) => distinctReadOnlyToolCount(right) - distinctReadOnlyToolCount(left))
-    .at(0)?.[1]
-
-  const serenaTools = new Map<SerenaToolName, NormalizedMcpToolSummary>()
-  for (const tool of selectedGroup ?? []) {
-    if (isSerenaReadOnlyTool(tool.toolName) && !serenaTools.has(tool.toolName)) {
-      serenaTools.set(tool.toolName, tool)
-    }
-  }
-
-  return serenaTools
+  return groups
 }
 
 function isLikelySerenaGroup(group: NormalizedMcpToolSummary[]): boolean {
